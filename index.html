@@ -1,16 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Author network</title>
-    <script src="index.js"></script>
+  <meta charset="UTF-8">
+  <title>Author-Publication Graph</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <script src="index.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet">
 </head>
 <body>
-    <select id="dropdown">
-        <option value="option1">Option 1</option>
-        <option value="option2">Option 2</option>
-        <option value="option3">Option 3</option>
-      </select>
+  <div id="mynetwork" style="height: 700px;"></div>
+
+  <script>
+
+    // Data
+    var nodes = new vis.DataSet([
+      {id: 1, label: 'Author 1'},
+      {id: 2, label: 'Author 2'},
+    ]);
+
+    var nodes2 = new vis.DataSet([
+      {id: 3, label: 'Publication 1'},
+      {id: 4, label: 'Publication 2'}
+    ]);
+
+    var edges = new vis.DataSet([
+      {from: 1, to: 2},
+      {from: 2, to: 3},
+      {from: 2, to: 4}
+    ]);
+
+    // Options
+    var options = {};
+
+    // Network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        nodes2: nodes2,
+        edges: edges
+    };
+    // var network = new vis.Network(container, data, options);
+    var network = new vis.Network(container, data, options);
+  </script>
 </body>
 </html>
