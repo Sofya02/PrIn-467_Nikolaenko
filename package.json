@@ -1,5 +1,16 @@
 {
   "dependencies": {
+    "mysql2": "^3.9.7",
     "vis": "^4.21.0-EOL"
-  }
+  },
+  "name": "prin-467_nikolaenko",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
