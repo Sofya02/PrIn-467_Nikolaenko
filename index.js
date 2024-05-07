@@ -75,6 +75,18 @@ function getEdgeColor(authorId) {
   }
 }
 
+// Функция расчета ширины ребра на основе количества публикаций
+function getEdgeWidth(authorId) {
+  const authorPublicationsCount = data.publications.reduce((count, publication) => {
+    if (publication.authorId.includes(authorId)) {
+      count++;
+    }
+    return count;
+  }, 0);
+
+  return authorPublicationsCount * 2; 
+}
+
 // Очистить существующие ребра
 edges.clear();
 
@@ -83,10 +95,12 @@ data.publications.forEach(publication => {
   publication.authorId.forEach(authorId => {
     const author = data.authors.find(a => a.id === authorId);
     const edgeColor = getEdgeColor(authorId);
+    const edgeWidth = getEdgeWidth(authorId);
     edges.add({ 
       from: authorId, 
       to: publication.title, 
       color: edgeColor, 
+      width: edgeWidth, //// Устанавливаем ширину края в зависимости от количества публикаций
       label: author.city + ',\n' + ' ' + author.university});
   });
 });
@@ -97,7 +111,8 @@ data.authors.forEach(author => {
     id: author.id, 
     label: author.name, 
     shape: 'dot', 
-    color: '#ff17b9' });
+    // color: '#ff17b9'
+   });
 });
 
 // Создание дополнительных узлов для публикаций
