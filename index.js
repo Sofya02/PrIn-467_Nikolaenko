@@ -220,3 +220,41 @@ let info_about_network_structure  = {
 };
 let network = new vis.Network(place, info_about_network_structure, options);
 
+// обработчик событий
+network.on('click', function(event) {
+  if (event.nodes && event.nodes.length > 0) {
+    const authorId = event.nodes[0];
+    const author = data.authors.find(a => a.id === authorId);
+    const authorPublications = data.publications.filter(publication => publication.authorId.includes(authorId));
+    const totalPublications = authorPublications.length;
+    showAuthorPublications(authorPublications, author.name, author.city, author.university, totalPublications);
+  }
+});
+
+// Функция для вывода списка публикаций автора 
+function showAuthorPublications(authorPublications, authorName, authorCity, authorUniversity, totalPublications) {
+  const publicationsList = document.getElementById('publications-list');
+  publicationsList.innerHTML = '';
+
+  const authorInfoElement = document.createElement('div');
+  authorInfoElement.innerHTML = `<h2>${authorName}</h2>` + ' Количество публикаций: ' + `${totalPublications}` + ', Город: ' + `${authorCity}` + ', Университет: ' + `${authorUniversity}`;
+  publicationsList.appendChild(authorInfoElement);
+
+  const publicationTypes = [...new Set(authorPublications.map(p => p.type))];
+  publicationTypes.forEach(type => {
+    const publicationsByType = authorPublications.filter(p => p.type === type);
+    publicationsByType.sort((a, b) => a.title.localeCompare(b.title));
+
+    const h3Element = document.createElement('h3');
+    h3Element.textContent = type;
+    publicationsList.appendChild(h3Element);
+
+    const ulElement = document.createElement('ul');
+    publicationsByType.forEach(publication => {
+      const liElement = document.createElement('li');
+      liElement.innerHTML = `<strong>${publication.title}</strong>`;
+      ulElement.appendChild(liElement);
+    });
+    publicationsList.appendChild(ulElement);
+  });
+}

@@ -5,6 +5,7 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
+  background-color: rgb(247, 241, 227);
 }
 
 #author_network {
@@ -14,4 +15,9 @@ body {
   margin-top: 15px;
   margin-left: 15px;
   float: left;
+}
+
+#text-l{
+  padding-top: 200px;
+  padding-left: 900px;
 }
