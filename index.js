@@ -58,22 +58,22 @@ data.publications = data.publications.map(publication => {
 edges.clear();
 
 // Функция расчета цвета края в зависимости от количества публикаций
-function getEdgeColor(authorId) {
-  const authorPublicationsCount = data.publications.reduce((count, publication) => {
-    if (publication.authorId.includes(authorId)) {
-      count++;
-    }
-    return count;
-  }, 0);
+// function getEdgeColor(authorId) {
+//   const authorPublicationsCount = data.publications.reduce((count, publication) => {
+//     if (publication.authorId.includes(authorId)) {
+//       count++;
+//     }
+//     return count;
+//   }, 0);
 
-  if (authorPublicationsCount < 3) {
-    return '#ff0000'; // Красный
-  } else if (authorPublicationsCount >= 3 && authorPublicationsCount <= 6) {
-    return '#FFFF00'; // Желтый
-  } else {
-    return '#00ff00'; // Зеленый
-  }
-}
+//   if (authorPublicationsCount < 3) {
+//     return '#ff0000'; // Красный
+//   } else if (authorPublicationsCount >= 3 && authorPublicationsCount <= 6) {
+//     return '#FFFF00'; // Желтый
+//   } else {
+//     return '#00ff00'; // Зеленый
+//   }
+// }
 
 // Функция расчета ширины ребра на основе количества публикаций
 function getEdgeWidth(authorId) {
@@ -94,22 +94,35 @@ edges.clear();
 data.publications.forEach(publication => {
   publication.authorId.forEach(authorId => {
     const author = data.authors.find(a => a.id === authorId);
-    const edgeColor = getEdgeColor(authorId);
+    // const edgeColor = getEdgeColor(authorId);
     const edgeWidth = getEdgeWidth(authorId);
     edges.add({ 
       from: authorId, 
       to: publication.title, 
-      color: edgeColor, 
-      width: edgeWidth, //// Устанавливаем ширину края в зависимости от количества публикаций
+      // color: edgeColor, 
+      width: edgeWidth, // Устанавливаем ширину ребра в зависимости от количества публикаций
       label: author.city + ',\n' + ' ' + author.university});
   });
 });
 
+// Функция для расчета количества публикаций для автора
+function getAuthorPublicationsCount(authorId, publications) {
+  return publications.reduce((count, publication) => {
+    if (publication.authorId.includes(authorId)) {
+      count++;
+    }
+    return count;
+  }, 0);
+}
+
 // Создание узлов для авторов
 data.authors.forEach(author => {
+  // Рассчитываем количество публикаций для автора
+  const authorPublicationsCount = getAuthorPublicationsCount(author.id, data.publications);
+
   nodes.add({ 
     id: author.id, 
-    label: author.name, 
+    label: `${author.name}` + ',\n' + ' ' + `${authorPublicationsCount}` + 'публ.', // имя автора и количество публикаций
     shape: 'dot', 
     // color: '#ff17b9'
    });
@@ -127,10 +140,14 @@ data.publications.forEach(publication => {
 let options = {
   nodes: {
     shape: 'ellipse',
+    font: {
+      size: 14,
+      color: '#000'
+    },
   },
   edges: {
     // Убираем зависимость цветов между узлом и ребром
-    color: { inherit: false },// Отключаем наследование цвета от узла
+    // color: { inherit: false },// Отключаем наследование цвета от узла
     font: { size: 14 }
   }
 };
