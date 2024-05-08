@@ -10,8 +10,23 @@
 <body>
   <script src="db.js" ></script>
   <div id="author_network"></div>
+  <div id="deep">
+    <h1>Глубина поиска:</h1>
+    <select id="depth-search-dropdown">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+    </select>
+  </div>
   <div id="text-l">
-    <h1>Список публикаций:</h1>
+    <h1 id="text">Список публикаций автора:</h1>
     <ul id="publications-list"></ul>
   </div>
   <script src="index.js" ></script>

@@ -9,15 +9,27 @@ body {
 }
 
 #author_network {
-  width: 800px;
+  width: 900px;
   height: 700px;
   border: 1px solid rgb(0, 0, 0);
   margin-top: 15px;
   margin-left: 15px;
   float: left;
+  background: #fff;
 }
 
 #text-l{
-  padding-top: 200px;
-  padding-left: 900px;
+  padding-top: 50px;
+  padding-left: 950px;
+}
+
+#deep {
+  padding-left: 50px;
+  display: flex;
+  align-items: center; /* выравнивает элементы по вертикали */
+  justify-content: space-left; 
+}
+
+#text{
+  padding-left: 15px;
 }

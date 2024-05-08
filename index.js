@@ -258,3 +258,9 @@ function showAuthorPublications(authorPublications, authorName, authorCity, auth
     publicationsList.appendChild(ulElement);
   });
 }
+
+// Обработчик событий для изменения глубины поиска при выборе значения из списка
+document.getElementById('depth-search-dropdown').addEventListener('change', function() {
+  const selectedDepth = parseInt(this.value);
+  filterGraphByDepth(selectedDepth);
+});
