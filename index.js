@@ -42,6 +42,18 @@ let data = {
   ]
 };
 
+const cityShapes = {
+  Москва: 'diamond',
+  Волгоград: 'triangle',
+  СанктПетербург: 'square',
+ //добавить для крупных городов
+};
+
+// Функция для получения формы узла в зависимости от города
+function getShapeByCity(city) {
+  return cityShapes[city] || 'circle'; // Если город не найден, используем круг
+}
+
 // Создание узлов (авторов)
 data.publications = data.publications.map(publication => {
   if (Array.isArray(publication.authorId)) {
@@ -60,13 +72,13 @@ edges.clear();
 // Функция для определения цвета на основе количества публикаций
 function getColorByPublicationsCount(count) {
   if (count <= 3) {
-    return { background: '#ff0000', border: '#808080', color: '#ff0000' }; // Красный
+    return { background: '#ff0000', border: '#000000', color: '#ff0000' }; // Красный
   } else if (count <= 6) {
-    return { background: '#FFFF00', border: '#808080', color: '#FFFF00' }; // Желтый
+    return { background: '#FFFF00', border: '#000000', color: '#FFFF00' }; // Желтый
   } else if (count <= 10) {
-    return { background: '#FFA500', border: '#808080', color: '#FFA500' }; // Оранжевый
+    return { background: '#FFA500', border: '#000000', color: '#FFA500' }; // Оранжевый
   } else {
-    return { background: '#008000', border: '#808080', color: '#008000' }; // Зеленый
+    return { background: '#008000', border: '#000000', color: '#008000' }; // Зеленый
   }
 }
 
@@ -95,6 +107,7 @@ data.publications.forEach(publication => {
       to: publication.title, 
       width: edgeWidth, // Устанавливаем ширину ребра в зависимости от количества публикаций
       color: edgeColor, // Устанавливаем цвет ребра
+      borderWidth: 6,
       label: author.city + ',\n' + ' ' + author.university});
   });
 });
@@ -115,10 +128,12 @@ data.authors.forEach(author => {
   const authorPublicationsCount = getAuthorPublicationsCount(author.id, data.publications);
   // Определяем цвет на основе количества публикаций
   const nodeColor = getColorByPublicationsCount(authorPublicationsCount);
+  // Определяем форму узла на основе города автора
+  const nodeShape = getShapeByCity(author.city);
   nodes.add({ 
     id: author.id, 
     label: `${author.name}` + ',\n' + ' ' + `${authorPublicationsCount}` + ' публ.', // имя автора и количество публикаций
-    shape: 'dot', 
+    shape: nodeShape,
     color: nodeColor, // Устанавливаем цвет узла
    });
 });
