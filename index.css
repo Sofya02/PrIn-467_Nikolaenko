@@ -23,7 +23,7 @@ body {
   padding-left: 950px;
 }
 
-#deep {
+#deep,#au {
   padding-left: 50px;
   display: flex;
   align-items: center; /* выравнивает элементы по вертикали */
