@@ -46,19 +46,23 @@ let data = {
   ]
 };
 
+const SaintPetersburg = 'Санкт-Петербург';
+const NizhnyNovgorod = 'Нижний Новгород';
+const RostovNaDon = 'Ростов-на-Дону';
+
 const cityShapes = {
   Москва: 'diamond',
   Волгоград: 'triangle',
-  СанктПетербург: 'square',
+  SaintPetersburg: 'square',
   Новосибирск: 'star',
   Екатеринбург: 'hexagon',
   Казань: 'pentagon',
-  // Нижний Новгород: 'octagon',
+  NizhnyNovgorod: 'octagon',
   Челябинск: 'parallelogram',
   Красноярск: 'trapezoid',
   Самара: 'cross',
   Уфа: 'oval',
-  // Ростов-на-Дону: 'heart',
+  RostovNaDon: 'heart',
   Омск: 'arrow',
   Краснодар: 'moon',
   Воронеж: 'cloud',
@@ -67,6 +71,40 @@ const cityShapes = {
 // Функция для получения формы узла в зависимости от города
 function getShapeByCity(city) {
   return cityShapes[city] || 'circle'; // Если город не найден, используем круг
+}
+
+// Функция для получения цвета узла в зависимости от города
+// Функция для получения цвета узла в зависимости от города
+function getColorByCity(city) {
+  if (city === 'Москва') {
+    return '#E6E6FA'; 
+  } else if (city === 'Волгоград') {
+    return '#87CEEB'; 
+  } else if (city === 'Санкт-Петербург') {
+    return '#BA55D3'; 
+  } else if (city === 'Новосибирск') {
+    return '#90EE90'; 
+  } else if (city === 'Екатеринбург') {
+    return '#7B68EE';
+  } else if (city === 'Казань') {
+    return '#FFDAB9'; 
+  } else if (city === 'Челябинск') {
+    return '#FF6347'; 
+  } else if (city === 'Красноярск') {
+    return '#FFF8DC'; 
+  } else if (city === 'Самара') {
+    return '#DCDCDC'; 
+  } else if (city === 'Уфа') {
+    return '#FFE4E1'; 
+  } else if (city === 'Омск') {
+    return '#F5F5F5'; 
+  } else if (city === 'Краснодар') {
+    return '#F0FFF0'; 
+  } else if (city === 'Воронеж') {
+    return '#7FFFD4'; 
+  } else {
+    return '#D8BFD8'; 
+  }
 }
 
 // Создание узлов (авторов)
@@ -141,8 +179,8 @@ function getAuthorPublicationsCount(authorId, publications) {
 data.authors.forEach(author => {
   // Рассчитываем количество публикаций для автора
   const authorPublicationsCount = getAuthorPublicationsCount(author.id, data.publications);
-  // Определяем цвет на основе количества публикаций
-  const nodeColor = getColorByPublicationsCount(authorPublicationsCount);
+  // Определяем цвет на основе города автора
+  const nodeColor = getColorByCity(author.city);
   // Определяем форму узла на основе города автора
   const nodeShape = getShapeByCity(author.city);
   nodes.add({ 
@@ -264,6 +302,3 @@ document.getElementById('depth-search-dropdown').addEventListener('change', func
   const selectedDepth = parseInt(this.value);
   filterGraphByDepth(selectedDepth);
 });
-
-
-
