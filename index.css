@@ -33,3 +33,7 @@ body {
 #text{
   padding-left: 15px;
 }
+
+#depth-search-dropdown,#author-search-dropdown{
+  margin-left: 10px;
+}
