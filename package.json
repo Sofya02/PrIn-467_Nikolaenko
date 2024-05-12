@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "mysql": "^2.18.1",
     "mysql2": "^3.9.7",
     "vis": "^4.21.0-EOL"
   },
@@ -13,5 +12,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "mysql": "^2.18.1",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  }
 }

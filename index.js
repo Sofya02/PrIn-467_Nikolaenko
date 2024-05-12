@@ -1,5 +1,5 @@
-const connectToDatabase = require('./db.js');
-const connection = connectToDatabase();
+// const connectToDatabase = require('./db.js');
+// const connection = connectToDatabase();
 
 
 // Данные для графа
