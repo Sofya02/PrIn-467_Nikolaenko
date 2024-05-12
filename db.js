@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql');
 
 function connectToDatabase() {
   const connection = mysql.createConnection({
@@ -10,13 +10,15 @@ function connectToDatabase() {
 
   connection.connect((error) => {
     if (error) {
-      console.error('Ошибка при подключении к базе данных:', error);
-    } else {
-      console.log('Успешное подключение к базе данных');
+      console.error('Ошибка подключения к базе данных: ' + error.stack);
+      return;
     }
-  });
 
-  return connection;
+    console.log('Успешно подключен к базе данных с идентификатором ' + connection.threadId);
+
+    connection.end();
+  });
 }
 
-module.exports = connectToDatabase;
+// Вызов функции для подключения к базе данных
+connectToDatabase();
