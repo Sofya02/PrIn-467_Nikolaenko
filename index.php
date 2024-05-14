@@ -14,13 +14,23 @@
   <script>
     $.getJSON('/bd_graph.php', graphData => {
       const nodes = new vis.DataSet(graphData.nodes);
+      const edges = new vis.DataSet(graphData.edges);
 
       const container = document.getElementById('author_network');
       const data = {
         nodes: nodes,
-        edges: []
+        edges: edges
       };
-      const options = {};
+      const options = {
+    nodes: {
+        shape: "dot",
+        font: {
+            size: 24,
+            color: "#000000",
+            face: "bold"
+        }
+    },
+};
 
       const network = new vis.Network(container, data, options);
       $('#author-search-dropdown').on('change', function() {
