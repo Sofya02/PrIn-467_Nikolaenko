@@ -19,7 +19,7 @@
       const container = document.getElementById('author_network');
       const data = {
         nodes: nodes,
-        edges: []
+        edges: edges
       };
       const options = {
       nodes: {
@@ -82,6 +82,43 @@
         }
       });
 
+      //обработчик для кнопки очистки выбора автора
+      $('#clear-author-selection').on('click', function() {
+        $('#author-info').empty();
+        $('#publications-list').empty();
+      });
+
+      const depthSelect = $('#depth-search-dropdown');
+      for (let depth = 0; depth <= 10; depth++) {
+        depthSelect.append(`<option value="${depth}">${depth}</option>`);
+      }
+
+      // Обработчик для выпадающего списка глубины поиска
+      depthSelect.on('change', function() {
+        performDepthSearch(depthSelect);
+      });
+
+      // Функция для выполнения поиска в глубину на клиентской стороне
+      function performDepthSearch(depth) {
+        
+        const startNodeId = nodes.getIds()[0];
+        const visitedNodes = new Set();
+        depthFirstSearch(startNodeId, depth, visitedNodes);
+
+        // Функция для рекурсивного поиска в глубину
+        function depthFirstSearch(nodeId, currentDepth, visitedNodes) {
+          if (currentDepth === 0 || visitedNodes.has(nodeId)) {
+            return;
+          }
+          visitedNodes.add(nodeId);
+          console.log(`Посещен узел: ${nodeId}`);
+          const neighbors = network.getConnectedNodes(nodeId);
+          for (const neighborId of neighbors) {
+            depthFirstSearch(neighborId, currentDepth - 1, visitedNodes);
+          }
+        }
+      }
+
     });
   </script>
   <div id="au">
@@ -99,8 +136,13 @@
       ?>
     </select>
   </div>
+  <div id="au">
+    <h1>Глубина поиска:</h1>
+    <select id="depth-search-dropdown"></select>
+  </div>
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
+    <button id="clear-author-selection">Очистить выбор</button> 
     <p id="author-info"></p>
     <ol id="publications-list"></ol>
   </div>
