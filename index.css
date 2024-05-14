@@ -30,7 +30,7 @@ body {
   justify-content: space-left; 
 }
 
-#text{
+#text,#author-info{
   padding-left: 15px;
 }
 

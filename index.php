@@ -19,18 +19,18 @@
       const container = document.getElementById('author_network');
       const data = {
         nodes: nodes,
-        edges: edges
+        edges: []
       };
       const options = {
-    nodes: {
-        shape: "dot",
-        font: {
-            size: 24,
-            color: "#000000",
-            face: "bold"
-        }
-    },
-};
+      nodes: {
+          shape: "dot",
+          font: {
+              size: 24,
+              color: "#000000",
+              face: "bold"
+                }
+            },
+      };
 
       const network = new vis.Network(container, data, options);
       $('#author-search-dropdown').on('change', function() {
@@ -42,17 +42,40 @@
         }
       });
 
+      // network.on('click', function(event) {
+      //   const nodeId = event.nodes[0];
+      //   if (nodeId) {
+      //     fetch('/authors_publications.php?author_id=' + nodeId)
+      //       .then(response => response.json())
+      //       .then(publications => {
+      //         const publicationsList = document.getElementById('publications-list');
+      //         publicationsList.innerHTML = '';
+      //         publications.forEach(publication => {
+      //           const listItem = document.createElement('li');
+      //           listItem.textContent = publication.title;
+      //           publicationsList.appendChild(listItem);
+      //         });
+      //       });
+      //   }
+      // });
+
       network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
           fetch('/authors_publications.php?author_id=' + nodeId)
             .then(response => response.json())
-            .then(publications => {
+            .then(data => {
               const publicationsList = document.getElementById('publications-list');
               publicationsList.innerHTML = '';
-              publications.forEach(publication => {
+              const authorName = data.author.name;
+              const totalPublications = data.author.total_publications;
+
+              const authorInfoElement = document.getElementById('author-info');
+              authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. <\h2>`;
+              
+              data.publications.forEach(publication => {
                 const listItem = document.createElement('li');
-                listItem.textContent = publication.title;
+                listItem.innerHTML = `<h3>${publication.title}<\h3><p>(Город: ${publication.city}, Университет: ${publication.university})<\p>`;
                 publicationsList.appendChild(listItem);
               });
             });
@@ -64,6 +87,7 @@
   <div id="au">
     <h1>Автор:</h1>
     <select id="author-search-dropdown" name="authors">
+      <option>---</option>
       <?php
         $result = mysqli_query($connection, "SELECT id, name FROM authors");
 
@@ -77,7 +101,8 @@
   </div>
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
-    <ul id="publications-list"></ul>
+    <p id="author-info"></p>
+    <ol id="publications-list"></ol>
   </div>
 </body>
 </html>

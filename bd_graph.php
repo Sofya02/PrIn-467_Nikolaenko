@@ -18,7 +18,7 @@ while ($row = mysqli_fetch_assoc($authors)) {
     $authorsData[] = [
         'id' => $row['id'],
         'label' => $row['name'] . ', ' . "\n" . $row['total_publications'] . ' пуб.',
-        'size' => max($row['total_publications'] * 3, 16),
+        'size' => max($row['total_publications'] * 3, 32),
         'color' => setColor($row['total_publications']),
     ];
 }
@@ -26,7 +26,7 @@ while ($row = mysqli_fetch_assoc($authors)) {
 function setColor($totalPublications) {
     if ($totalPublications < 10) {
         return 'red';
-    } elseif ($totalPublications >= 11 && $totalPublications <= 50) {
+    } elseif ($totalPublications >= 10 && $totalPublications <= 50) {
         return 'yellow';
     } elseif ($totalPublications >= 51 && $totalPublications <= 100) {
         return 'orange';
