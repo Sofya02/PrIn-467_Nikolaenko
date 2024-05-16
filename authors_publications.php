@@ -18,8 +18,8 @@ if ($authorId) {
     LEFT JOIN cities c ON cp2.IdCities = c.id 
     LEFT JOIN types_of_publications tp ON p.type_id = tp.id 
     WHERE ap.IdAuthors = $authorId 
-    GROUP BY p.id, p.title, tp.name 
-    ORDER BY tp.name");
+    GROUP BY tp.name, p.id, p.title 
+    ORDER BY tp.name, p.title");
 
     $publicationsData = [];
     while ($row = mysqli_fetch_assoc($publications)) {
@@ -27,7 +27,8 @@ if ($authorId) {
             'id' => $row['id'],
             'title' => $row['title'],
             'city' => $row['city_name'],
-            'university' => $row['university_name']
+            'university' => $row['university_name'],
+            'type_name' => $row['type_name'],
         ];
     }
 

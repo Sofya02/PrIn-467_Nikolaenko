@@ -59,6 +59,30 @@
       //   }
       // });
 
+      ///ввввввв
+      // network.on('click', function(event) {
+      //   const nodeId = event.nodes[0];
+      //   if (nodeId) {
+      //     fetch('/authors_publications.php?author_id=' + nodeId)
+      //       .then(response => response.json())
+      //       .then(data => {
+      //         const publicationsList = document.getElementById('publications-list');
+      //         publicationsList.innerHTML = '';
+      //         const authorName = data.author.name;
+      //         const totalPublications = data.author.total_publications;
+
+      //         const authorInfoElement = document.getElementById('author-info');
+      //         authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. <\h2>`;
+              
+      //         data.publications.forEach(publication => {
+      //           const listItem = document.createElement('li');
+      //           listItem.innerHTML = `<h3>${publication.title}<\h3><p>(Город: ${publication.city}, Университет: ${publication.university})<\p>`;
+      //           publicationsList.appendChild(listItem);
+      //         });
+      //       });
+      //   }
+      // });
+
       network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
@@ -71,13 +95,32 @@
               const totalPublications = data.author.total_publications;
 
               const authorInfoElement = document.getElementById('author-info');
-              authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. <\h2>`;
-              
+              authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
+
+              // Создаем объект для группировки публикаций по типу
+              const publicationsByType = {};
               data.publications.forEach(publication => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<h3>${publication.title}<\h3><p>(Город: ${publication.city}, Университет: ${publication.university})<\p>`;
-                publicationsList.appendChild(listItem);
+                if (!publicationsByType[publication.type_name]) {
+                  publicationsByType[publication.type_name] = [];
+                }
+                publicationsByType[publication.type_name].push({
+                  title: publication.title,
+                  city: publication.city,
+                  university: publication.university
+                });
               });
+
+              // Выводим список публикаций, сгруппированных по типу
+              for (const typeName in publicationsByType) {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<h3>${typeName}</h3>`;
+                publicationsByType[typeName].forEach((publication, index) => {
+                  const publicationItem = document.createElement('p');
+                  publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Город: ${publication.city}, Университет: ${publication.university})`;
+                  listItem.appendChild(publicationItem);
+                });
+                publicationsList.appendChild(listItem);
+              }
             });
         }
       });
@@ -119,6 +162,28 @@
         }
       }
 
+      $('#type-search-dropdown').on('change', function() {
+        const selectedTypeId = $(this).val();
+        if (selectedTypeId) {
+          // Фильтрация узлов авторов по выбранному типу публикации
+          const filteredNodes = nodes.get().filter(node => {
+            const nodeEdges = edges.get().filter(edge => edge.from === node.id || edge.to === node.id);
+            return nodeEdges.some(edge => edge.label === selectedTypeId);
+          });
+
+          // Фильтрация ребер по выбранному типу публикации
+          const filteredEdges = edges.get().filter(edge => edge.label === selectedTypeId);
+
+          nodes.clear();
+          nodes.add(filteredNodes);
+
+          edges.clear();
+          edges.add(filteredEdges);
+
+          network.setData({ nodes: nodes, edges: edges });
+        }
+      });
+
     });
   </script>
   <div id="au">
@@ -140,6 +205,26 @@
     <h1>Глубина поиска:</h1>
     <select id="depth-search-dropdown"></select>
   </div>
+  <div id="au">
+    <h1>Тип публикации:</h1>
+    <select id="type-search-dropdown">
+      <script>
+        $(document).ready(function() {
+            // Запрос к базе данных для получения списка типов публикаций
+            $.getJSON('/types_of_publications.php', function(data) {
+                // Заполнение выпадающего списка типами публикаций
+                var $typeDropdown = $('#type-search-dropdown');
+                $typeDropdown.append('<option value="">---</option>');
+                data.forEach(function(type) {
+                    $typeDropdown.append('<option value="' + type.id + '">' + type.name + '</option>');
+                });
+            });
+        });
+       
+      </script>
+    </select>
+  </div>
+  
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
     <button id="clear-author-selection">Очистить выбор</button> 
