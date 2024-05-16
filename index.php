@@ -42,47 +42,6 @@
         }
       });
 
-      // network.on('click', function(event) {
-      //   const nodeId = event.nodes[0];
-      //   if (nodeId) {
-      //     fetch('/authors_publications.php?author_id=' + nodeId)
-      //       .then(response => response.json())
-      //       .then(publications => {
-      //         const publicationsList = document.getElementById('publications-list');
-      //         publicationsList.innerHTML = '';
-      //         publications.forEach(publication => {
-      //           const listItem = document.createElement('li');
-      //           listItem.textContent = publication.title;
-      //           publicationsList.appendChild(listItem);
-      //         });
-      //       });
-      //   }
-      // });
-
-      ///ввввввв
-      // network.on('click', function(event) {
-      //   const nodeId = event.nodes[0];
-      //   if (nodeId) {
-      //     fetch('/authors_publications.php?author_id=' + nodeId)
-      //       .then(response => response.json())
-      //       .then(data => {
-      //         const publicationsList = document.getElementById('publications-list');
-      //         publicationsList.innerHTML = '';
-      //         const authorName = data.author.name;
-      //         const totalPublications = data.author.total_publications;
-
-      //         const authorInfoElement = document.getElementById('author-info');
-      //         authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. <\h2>`;
-              
-      //         data.publications.forEach(publication => {
-      //           const listItem = document.createElement('li');
-      //           listItem.innerHTML = `<h3>${publication.title}<\h3><p>(Город: ${publication.city}, Университет: ${publication.university})<\p>`;
-      //           publicationsList.appendChild(listItem);
-      //         });
-      //       });
-      //   }
-      // });
-
       network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
@@ -130,37 +89,6 @@
         $('#author-info').empty();
         $('#publications-list').empty();
       });
-
-      // const depthSelect = $('#depth-search-dropdown');
-      // for (let depth = 0; depth <= 10; depth++) {
-      //   depthSelect.append(`<option value="${depth}">${depth}</option>`);
-      // }
-
-      // // Обработчик для выпадающего списка глубины поиска
-      // depthSelect.on('change', function() {
-      //   performDepthSearch(depthSelect);
-      // });
-
-      // // Функция для выполнения поиска в глубину на клиентской стороне
-      // function performDepthSearch(depth) {
-        
-      //   const startNodeId = nodes.getIds()[0];
-      //   const visitedNodes = new Set();
-      //   depthFirstSearch(startNodeId, depth, visitedNodes);
-
-      //   // Функция для рекурсивного поиска в глубину
-      //   function depthFirstSearch(nodeId, currentDepth, visitedNodes) {
-      //     if (currentDepth === 0 || visitedNodes.has(nodeId)) {
-      //       return;
-      //     }
-      //     visitedNodes.add(nodeId);
-      //     console.log(`Посещен узел: ${nodeId}`);
-      //     const neighbors = network.getConnectedNodes(nodeId);
-      //     for (const neighborId of neighbors) {
-      //       depthFirstSearch(neighborId, currentDepth - 1, visitedNodes);
-      //     }
-      //   }
-      // }
 
       const depthSelect = $('#depth-search-dropdown');
       for (let depth = 0; depth <= 10; depth++) {
@@ -212,6 +140,35 @@
         visitedAuthorsElement.innerHTML = '';
       });
 
+      // Обработчик для выпадающего списка типа публикации
+      $('#type-search-dropdown').on('change', function() {
+        const selectedTypeId = $(this).val();
+        if (selectedTypeId) {
+          // Фильтруем узлы и ребра на основе выбранного типа публикации
+          const filteredNodes = new vis.DataSet();
+          const filteredEdges = new vis.DataSet();
+
+          nodes.forEach(node => {
+            if (node.label.includes(selectedTypeId)) {
+              filteredNodes.add(node);
+            }
+          });
+
+          edges.forEach(edge => {
+            if (edge.label === selectedTypeId) {
+              filteredEdges.add(edge);
+            }
+          });
+
+          // Обновляем данные графа
+          const filteredData = {
+            nodes: filteredNodes,
+            edges: filteredEdges
+          };
+          network.setData(filteredData);
+        }
+      });
+
     });
   </script>
   <div id="au">
@@ -229,12 +186,6 @@
       ?>
     </select>
   </div>
-  <div id="au">
-    <h1>Глубина поиска:</h1>
-    <select id="depth-search-dropdown"></select>
-    <button id="clear-depth-search">Очистить поиск в глубину</button> 
-  </div>
-  <div id="visited-authors"></div>
   <div id="au">
     <h1>Тип публикации:</h1>
     <select id="type-search-dropdown">
@@ -254,6 +205,12 @@
       </script>
     </select>
   </div>
+  <div id="au">
+    <h1>Глубина поиска:</h1>
+    <select id="depth-search-dropdown"></select>
+    <button id="clear-depth-search">Очистить поиск в глубину</button> 
+  </div>
+  <div id="visited-authors"></div>
   
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
