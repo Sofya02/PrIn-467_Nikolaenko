@@ -140,8 +140,8 @@
         visitedAuthorsElement.innerHTML = '';
       });
 
-      // Обработчик для выпадающего списка типа публикации
-      $('#type-search-dropdown').on('change', function() {
+       // Обработчик для выпадающего списка типа публикации
+       $('#type-search-dropdown').on('change', function() {
         const selectedTypeId = $(this).val();
         if (selectedTypeId) {
           // Фильтруем узлы и ребра на основе выбранного типа публикации
@@ -155,7 +155,7 @@
           });
 
           edges.forEach(edge => {
-            if (edge.label === selectedTypeId) {
+            if (edge.label.includes(selectedTypeId)) {
               filteredEdges.add(edge);
             }
           });
