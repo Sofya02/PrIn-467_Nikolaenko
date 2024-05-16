@@ -8,7 +8,7 @@ body {
   background-color: rgb(247, 241, 227);
 }
 
-#author_network {
+#author_network, #visited-network {
   width: 900px;
   height: 700px;
   border: 1px solid rgb(0, 0, 0);

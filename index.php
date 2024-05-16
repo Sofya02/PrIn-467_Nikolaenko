@@ -131,6 +131,37 @@
         $('#publications-list').empty();
       });
 
+      // const depthSelect = $('#depth-search-dropdown');
+      // for (let depth = 0; depth <= 10; depth++) {
+      //   depthSelect.append(`<option value="${depth}">${depth}</option>`);
+      // }
+
+      // // Обработчик для выпадающего списка глубины поиска
+      // depthSelect.on('change', function() {
+      //   performDepthSearch(depthSelect);
+      // });
+
+      // // Функция для выполнения поиска в глубину на клиентской стороне
+      // function performDepthSearch(depth) {
+        
+      //   const startNodeId = nodes.getIds()[0];
+      //   const visitedNodes = new Set();
+      //   depthFirstSearch(startNodeId, depth, visitedNodes);
+
+      //   // Функция для рекурсивного поиска в глубину
+      //   function depthFirstSearch(nodeId, currentDepth, visitedNodes) {
+      //     if (currentDepth === 0 || visitedNodes.has(nodeId)) {
+      //       return;
+      //     }
+      //     visitedNodes.add(nodeId);
+      //     console.log(`Посещен узел: ${nodeId}`);
+      //     const neighbors = network.getConnectedNodes(nodeId);
+      //     for (const neighborId of neighbors) {
+      //       depthFirstSearch(neighborId, currentDepth - 1, visitedNodes);
+      //     }
+      //   }
+      // }
+
       const depthSelect = $('#depth-search-dropdown');
       for (let depth = 0; depth <= 10; depth++) {
         depthSelect.append(`<option value="${depth}">${depth}</option>`);
@@ -143,45 +174,42 @@
 
       // Функция для выполнения поиска в глубину на клиентской стороне
       function performDepthSearch(depth) {
-        
         const startNodeId = nodes.getIds()[0];
         const visitedNodes = new Set();
-        depthFirstSearch(startNodeId, depth, visitedNodes);
+        const visitedAuthors = []; // Массив для хранения авторов посещенных узлов
+        depthFirstSearch(startNodeId, depth, visitedNodes, visitedAuthors);
 
-        // Функция для рекурсивного поиска в глубину
-        function depthFirstSearch(nodeId, currentDepth, visitedNodes) {
-          if (currentDepth === 0 || visitedNodes.has(nodeId)) {
-            return;
-          }
-          visitedNodes.add(nodeId);
-          console.log(`Посещен узел: ${nodeId}`);
-          const neighbors = network.getConnectedNodes(nodeId);
-          for (const neighborId of neighbors) {
-            depthFirstSearch(neighborId, currentDepth - 1, visitedNodes);
-          }
+        // Выводим список посещенных узлов с названием автора
+        const visitedAuthorsElement = document.getElementById('visited-authors');
+        visitedAuthorsElement.innerHTML = '';
+        visitedAuthors.forEach(author => {
+          const authorElement = document.createElement('p');
+          authorElement.textContent = `Посещен узел: ${author.id}, Автор: ${author.name}`;
+          visitedAuthorsElement.appendChild(authorElement);
+        });
+      }
+
+      // Функция для рекурсивного поиска в глубину
+      function depthFirstSearch(nodeId, currentDepth, visitedNodes, visitedAuthors) {
+        if (currentDepth === 0 || visitedNodes.has(nodeId)) {
+          return;
+        }
+        visitedNodes.add(nodeId);
+        const node = nodes.get(nodeId);
+        const author = { id: node.id, name: node.label }; // Предполагаем, что узел содержит имя автора в свойстве 'label'
+        visitedAuthors.push(author); // Добавляем автора в массив посещенных авторов
+        const neighbors = network.getConnectedNodes(nodeId);
+        for (const neighborId of neighbors) {
+          depthFirstSearch(neighborId, currentDepth - 1, visitedNodes, visitedAuthors);
         }
       }
 
-      $('#type-search-dropdown').on('change', function() {
-        const selectedTypeId = $(this).val();
-        if (selectedTypeId) {
-          // Фильтрация узлов авторов по выбранному типу публикации
-          const filteredNodes = nodes.get().filter(node => {
-            const nodeEdges = edges.get().filter(edge => edge.from === node.id || edge.to === node.id);
-            return nodeEdges.some(edge => edge.label === selectedTypeId);
-          });
-
-          // Фильтрация ребер по выбранному типу публикации
-          const filteredEdges = edges.get().filter(edge => edge.label === selectedTypeId);
-
-          nodes.clear();
-          nodes.add(filteredNodes);
-
-          edges.clear();
-          edges.add(filteredEdges);
-
-          network.setData({ nodes: nodes, edges: edges });
-        }
+      // Кнопка очистки поиска в глубину
+      const clearDepthSearchButton = document.getElementById('clear-depth-search');
+      clearDepthSearchButton.addEventListener('click', function() {
+        // Очищаем список посещенных узлов
+        const visitedAuthorsElement = document.getElementById('visited-authors');
+        visitedAuthorsElement.innerHTML = '';
       });
 
     });
@@ -204,7 +232,9 @@
   <div id="au">
     <h1>Глубина поиска:</h1>
     <select id="depth-search-dropdown"></select>
+    <button id="clear-depth-search">Очистить поиск в глубину</button> 
   </div>
+  <div id="visited-authors"></div>
   <div id="au">
     <h1>Тип публикации:</h1>
     <select id="type-search-dropdown">
