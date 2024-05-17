@@ -21,15 +21,33 @@
         nodes: nodes,
         edges: edges
       };
+
       const options = {
-      nodes: {
+        nodes: {
           shape: "dot",
           font: {
-              size: 24,
-              color: "#000000",
-              face: "bold"
-                }
-            },
+            size: 24,
+            color: "#000000",
+            face: "bold"
+          },
+        },
+        physics: {
+          forceAtlas2Based: {
+            gravitationalConstant: -26, 
+            centralGravity: 0.005,
+            springLength: 230, 
+            springConstant: 0.18,
+          },
+          maxVelocity: 146, 
+          solver: "forceAtlas2Based",
+          timestep: 0.35, 
+          stabilization: {
+            iterations: 150, 
+          },
+          barnesHut: {
+            avoidOverlap: 0.5 
+          }
+        },
       };
 
       const network = new vis.Network(container, data, options);
