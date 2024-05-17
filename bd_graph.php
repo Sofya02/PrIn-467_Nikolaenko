@@ -2,7 +2,7 @@
 include 'db.php';
 
 $authorId = isset($_GET['author_id']) ? intval($_GET['author_id']) : null;
-
+$typeId = isset($_GET['type_id']) ? intval($_GET['type_id']) : null;
 
 if ($authorId) {
     $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications FROM authors a 
@@ -35,11 +35,17 @@ function setColor($totalPublications) {
     }
 }
 
+// $edges = mysqli_query($connection, "SELECT ap1.IdAuthors AS from_author, ap2.IdAuthors AS to_author, p.title AS publication_title, tp.name AS publication_type FROM authorpublication ap1 
+//     JOIN authorpublication ap2 ON ap1.IdPublications = ap2.IdPublications AND ap1.IdAuthors != ap2.IdAuthors 
+//     JOIN publications p ON ap1.IdPublications = p.id 
+//     JOIN types_of_publications tp ON p.type_id = tp.id 
+//     WHERE ap1.IdAuthors < ap2.IdAuthors");
+
 $edges = mysqli_query($connection, "SELECT ap1.IdAuthors AS from_author, ap2.IdAuthors AS to_author, p.title AS publication_title, tp.name AS publication_type FROM authorpublication ap1 
     JOIN authorpublication ap2 ON ap1.IdPublications = ap2.IdPublications AND ap1.IdAuthors != ap2.IdAuthors 
     JOIN publications p ON ap1.IdPublications = p.id 
     JOIN types_of_publications tp ON p.type_id = tp.id 
-    WHERE ap1.IdAuthors < ap2.IdAuthors");
+    WHERE ap1.IdAuthors < ap2.IdAuthors" . ($typeId ? " AND p.type_id = $typeId" : ""));
 
 $edgesData = [];
 while ($row = mysqli_fetch_assoc($edges)) {
@@ -47,7 +53,7 @@ while ($row = mysqli_fetch_assoc($edges)) {
     $edgesData[] = [
         'from' => $row['from_author'],
         'to' => $row['to_author'],
-        'label' => $row['publication_type'],
+        'label' => $row['publication_title'],
     ];
 }
 
