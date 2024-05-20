@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Авторская сеть</title>
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="i.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -12,6 +12,7 @@
   <?php include 'db.php'; ?>
   <div id="author_network"></div>
   <script>
+
     $.getJSON('/bd_graph.php', graphData => {
       const nodes = new vis.DataSet(graphData.nodes);
       const edges = new vis.DataSet(graphData.edges);
@@ -48,9 +49,20 @@
             avoidOverlap: 0.5 
           }
         },
+        interaction: {
+          dragNodes: true,
+          zoomView: true,
+        },
       };
 
       const network = new vis.Network(container, data, options);
+
+      // $(window).scroll(function() {
+      //   const scrollTop = $(window).scrollTop();
+      //   const container = document.getElementById('author_network');
+      //   container.style.top = `${scrollTop}px`; // Изменяем позицию блока в зависимости от прокрутки
+      // });
+      
       $('#author-search-dropdown').on('change', function() {
         const selectedAuthorId = $(this).val();
         if (selectedAuthorId) {
@@ -238,7 +250,7 @@
     </div>
     
     <div id="au">
-      <h1>Автор:</h1>
+      <h3>Автор:</h3>
       <select id="author-search-dropdown" name="authors">
         <option>---</option>
         <?php
@@ -251,9 +263,10 @@
           mysqli_close($connection);
         ?>
       </select>
+      <button id="clear-author-search">Очистить</button> 
     </div>
     <div id="au">
-      <h1>Количество публикаций:</h1>
+      <h3>Количество публикаций:</h3>
       <select id="value-search-dropdown">
         <option>---</option>
         <option>меньше 10</option>
@@ -261,11 +274,12 @@
         <option>51-100</option>
         <option>больше 100</option>
       </select>
+      <button id="clear-value-search">Очистить</button> 
     </div>
     <div id="au">
-      <h1>Глубина поиска:</h1>
+      <h3>Глубина поиска:</h3>
       <select id="depth-search-dropdown"></select>
-      <button id="clear-depth-search">Очистить поиск в глубину</button> 
+      <button id="clear-depth-search">Очистить</button> 
     </div>
   </div> 
   <div id="visited-authors"></div>
