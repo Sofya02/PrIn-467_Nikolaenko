@@ -19,7 +19,7 @@ body {
 }
 
 #text-l{
-  padding-top: 50px;
+  padding-top: 490px;
   padding-left: 950px;
 }
 
@@ -37,3 +37,4 @@ body {
 #depth-search-dropdown,#author-search-dropdown{
   margin-left: 100px;
 }
+

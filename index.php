@@ -70,6 +70,7 @@
               publicationsList.innerHTML = '';
               const authorName = data.author.name;
               const totalPublications = data.author.total_publications;
+              const hasJointWorks = data.author.has_joint_works;////
 
               const authorInfoElement = document.getElementById('author-info');
               authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
@@ -213,76 +214,60 @@
       }
     }
 
-      // Получаем ссылку на чекбокс
-      // const showJointWorksCheckbox = document.getElementById('showJointWorks');
-
-      // // Обработчик изменения состояния чекбокса
-      // showJointWorksCheckbox.addEventListener('change', function() {
-      //   if (showJointWorksCheckbox.checked) {
-      //     // Фильтруем узлы, оставляя только те, которые соединены ребрами
-      //     const filteredNodes = new vis.DataSet();
-      //     const nodeIds = nodes.getIds();
-      //     const edgeData = edges.get();
-
-      //     nodeIds.forEach(nodeId => {
-      //       const connectedEdges = edgeData.filter(edge => edge.from === nodeId || edge.to === nodeId);
-      //       if (connectedEdges.length > 0) {
-      //         filteredNodes.add(nodes.get(nodeId));
-      //       }
-      //     });
-
-      //     // Обновляем данные графа
-      //     network.body.data.nodes.clear();
-      //     network.body.data.nodes.add(filteredNodes);
-      //   } else {
-      //     // Восстанавливаем все узлы, если чекбокс не отмечен
-      //     network.body.data.nodes.clear();
-      //     network.body.data.nodes.add(nodes);
-      //   }
-      // });
+    $('#value-search-dropdown').on('change', function() {
+        const filterValue = $(this).val();
+        if (filterValue) {
+            $.getJSON('/bd_graph.php?filter=' + encodeURIComponent(filterValue), graphData => {
+                network.setData(graphData);
+            });
+        }
+    });
 
     });
   </script>
-  <div id="au">
-    <div id="controls">
-      <input type="checkbox" id="showJointWorks" name="showJointWorks" value="true">
-      <label for="showJointWorks">Авторы с совместными публикациями</label>
+  <div id="filter-menu">
+    <div id="au">
+      <div id="controls">
+        <input type="checkbox" id="showJointWorks" name="showJointWorks" value="true">
+        <label for="showJointWorks">Авторы с совместными публикациями</label>
+      </div>
+      <div id="controls">
+        <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="true">
+        <label for="showJointWorks">Авторы без совместных публикаций</label>
+      </div>
     </div>
-    <div id="controls">
-      <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="true">
-      <label for="showJointWorks">Авторы без совместных публикаций</label>
+    
+    <div id="au">
+      <h1>Автор:</h1>
+      <select id="author-search-dropdown" name="authors">
+        <option>---</option>
+        <?php
+          $result = mysqli_query($connection, "SELECT id, name FROM authors");
+
+          while ($row = mysqli_fetch_assoc($result)) {
+              echo '<option value="' . $row['id'] . '">' . $row['name'] . '</option>';
+          }
+
+          mysqli_close($connection);
+        ?>
+      </select>
     </div>
-  </div>
-  <div id="au">
-    <h1>Автор:</h1>
-    <select id="author-search-dropdown" name="authors">
-      <option>---</option>
-      <?php
-        $result = mysqli_query($connection, "SELECT id, name FROM authors");
-
-        while ($row = mysqli_fetch_assoc($result)) {
-            echo '<option value="' . $row['id'] . '">' . $row['name'] . '</option>';
-        }
-
-        mysqli_close($connection);
-      ?>
-    </select>
-  </div>
-  <div id="au">
-    <h1>Количество публикаций:</h1>
-    <select id="value-search-dropdown">
-      <option>---</option>
-      <option>меньше 10</option>
-      <option>11-50</option>
-      <option>51-100</option>
-      <option>больше 100</option>
-    </select>
-  </div>
-  <div id="au">
-    <h1>Глубина поиска:</h1>
-    <select id="depth-search-dropdown"></select>
-    <button id="clear-depth-search">Очистить поиск в глубину</button> 
-  </div>
+    <div id="au">
+      <h1>Количество публикаций:</h1>
+      <select id="value-search-dropdown">
+        <option>---</option>
+        <option>меньше 10</option>
+        <option>11-50</option>
+        <option>51-100</option>
+        <option>больше 100</option>
+      </select>
+    </div>
+    <div id="au">
+      <h1>Глубина поиска:</h1>
+      <select id="depth-search-dropdown"></select>
+      <button id="clear-depth-search">Очистить поиск в глубину</button> 
+    </div>
+  </div> 
   <div id="visited-authors"></div>
   
   <div id="text-l">

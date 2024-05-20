@@ -4,6 +4,7 @@ include 'db.php';
 $authorId = isset($_GET['author_id']) ? intval($_GET['author_id']) : null;
 $typeId = isset($_GET['type_id']) ? intval($_GET['type_id']) : null;
 
+
 if ($authorId) {
     // $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications FROM authors a 
     // LEFT JOIN authorpublication ap ON a.id = ap.IdAuthors WHERE a.id = $authorId GROUP BY a.id, a.name");
@@ -30,6 +31,7 @@ while ($row = mysqli_fetch_assoc($authors)) {
         'label' => $row['name'] . ', ' . "\n" . $row['total_publications'] . ' пуб.',
         'size' => max($row['total_publications'] * 0.75, 32),
         'color' => setColor($row['total_publications']),
+        'has_joint_works' => $row['has_joint_works']
     ];
 }
 
@@ -61,6 +63,9 @@ while ($row = mysqli_fetch_assoc($edges)) {
         'label' => $row['publication_title'],
     ];
 }
+
+
+
 
 mysqli_close($connection);
 
