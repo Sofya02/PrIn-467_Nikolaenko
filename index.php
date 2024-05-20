@@ -282,11 +282,13 @@
       <button id="clear-depth-search">Очистить</button> 
     </div>
   </div> 
-  <div id="visited-authors"></div>
-  
+  <div id="visited-authors">
+    <h1 id="text">Поиск в глубину:</h1>
+    <button id="clear-visited-selection">Очистить</button> 
+  </div>
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
-    <button id="clear-author-selection">Очистить выбор</button> 
+    <button id="clear-author-selection">Очистить</button> 
     <p id="author-info"></p>
     <ol id="publications-list"></ol>
   </div>
