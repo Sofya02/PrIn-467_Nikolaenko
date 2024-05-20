@@ -31,7 +31,8 @@ while ($row = mysqli_fetch_assoc($authors)) {
         'label' => $row['name'] . ', ' . "\n" . $row['total_publications'] . ' пуб.',
         'size' => max($row['total_publications'] * 0.75, 32),
         'color' => setColor($row['total_publications']),
-        'has_joint_works' => $row['has_joint_works']
+        'has_joint_works' => $row['has_joint_works'],
+        'publications' => $row['total_publications'],
     ];
 }
 

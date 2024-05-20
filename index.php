@@ -12,7 +12,6 @@
   <?php include 'db.php'; ?>
   <div id="author_network"></div>
   <script>
-
     $.getJSON('/bd_graph.php', graphData => {
       const nodes = new vis.DataSet(graphData.nodes);
       const edges = new vis.DataSet(graphData.edges);
@@ -56,12 +55,6 @@
       };
 
       const network = new vis.Network(container, data, options);
-
-      // $(window).scroll(function() {
-      //   const scrollTop = $(window).scrollTop();
-      //   const container = document.getElementById('author_network');
-      //   container.style.top = `${scrollTop}px`; // Изменяем позицию блока в зависимости от прокрутки
-      // });
       
       $('#author-search-dropdown').on('change', function() {
         const selectedAuthorId = $(this).val();
@@ -121,121 +114,57 @@
         $('#publications-list').empty();
       });
 
-      /////////////////////////////////////////////////////////////
-      // const depthSelect = $('#depth-search-dropdown');
-      // for (let depth = 0; depth <= 10; depth++) {
-      //   depthSelect.append(`<option value="${depth}">${depth}</option>`);
-      // }
-
-      // // Обработчик для выпадающего списка глубины поиска
-      // depthSelect.on('change', function() {
-      //   performDepthSearch(depthSelect);
-      // });
-
-      // // Функция для выполнения поиска в глубину на клиентской стороне
-      // function performDepthSearch(depth) {
-      //   const startNodeId = nodes.getIds()[0];
-      //   const visitedNodes = new Set();
-      //   const visitedAuthors = []; // Массив для хранения авторов посещенных узлов
-      //   depthFirstSearch(startNodeId, depth, visitedNodes, visitedAuthors);
-
-      //   // Выводим список посещенных узлов с названием автора
-      //   const visitedAuthorsElement = document.getElementById('visited-authors');
-      //   visitedAuthorsElement.innerHTML = '';
-      //   visitedAuthors.forEach(author => {
-      //     const authorElement = document.createElement('p');
-      //     authorElement.textContent = `Посещен узел: ${author.id}, Автор: ${author.name}`;
-      //     visitedAuthorsElement.appendChild(authorElement);
-      //   });
-      // }
-
-      // // Функция для рекурсивного поиска в глубину
-      // function depthFirstSearch(nodeId, currentDepth, visitedNodes, visitedAuthors) {
-      //   if (currentDepth === 0 || visitedNodes.has(nodeId)) {
-      //     return;
-      //   }
-      //   visitedNodes.add(nodeId);
-      //   const node = nodes.get(nodeId);
-      //   const author = { id: node.id, name: node.label }; // Предполагаем, что узел содержит имя автора в свойстве 'label'
-      //   visitedAuthors.push(author); // Добавляем автора в массив посещенных авторов
-      //   const neighbors = network.getConnectedNodes(nodeId);
-      //   for (const neighborId of neighbors) {
-      //     depthFirstSearch(neighborId, currentDepth - 1, visitedNodes, visitedAuthors);
-      //   }
-      // }
-
-      // // Кнопка очистки поиска в глубину
-      // const clearDepthSearchButton = document.getElementById('clear-depth-search');
-      // clearDepthSearchButton.addEventListener('click', function() {
-      //   // Очищаем список посещенных узлов
-      //   const visitedAuthorsElement = document.getElementById('visited-authors');
-      //   visitedAuthorsElement.innerHTML = '';
-      // });
-      //////////////////////////////////////////////////#000000
-        // Добавляем выпадающий список с возможностью выбора глубины поиска от 0 до 10
-    const depthSelect = $('#depth-search-dropdown');
-    for (let depth = 0; depth <= 10; depth++) {
-      depthSelect.append(`<option value="${depth}">${depth}</option>`);
-    }
-
-    // Обработчик для выпадающего списка глубины поиска
-    depthSelect.on('change', function() {
-      performDepthSearch(depthSelect.val());
-    });
-
-    // Функция для выполнения поиска в глубину на клиентской стороне
-    function performDepthSearch(depth) {
-      const startNodeId = nodes.getIds()[0]; // Начинаем с первого узла в списке
-      const visitedNodes = new Set();
-      const visitedAuthors = []; // Массив для хранения авторов посещенных узлов
-      const visitedEdges = []; // Массив для хранения посещенных ребер
-      depthFirstSearch(startNodeId, depth, visitedNodes, visitedAuthors, visitedEdges);
-
-      // Выводим список посещенных узлов с названием автора и ребер
-      const visitedAuthorsElement = document.getElementById('visited-authors');
-      visitedAuthorsElement.innerHTML = '';
-      visitedAuthors.forEach(author => {
-        const authorElement = document.createElement('p');
-        authorElement.textContent = `Посещен узел: ${author.id}, Автор: ${author.name}`;
-        visitedAuthorsElement.appendChild(authorElement);
+      //обработчик для кнопки очистки выбора автора
+      $('#clear-visited-selection').on('click', function() {
+        $('#depth-authors').empty();
       });
 
-      visitedEdges.forEach(edge => {
-        const edgeElement = document.createElement('p');
-        edgeElement.textContent = `Ребро: ${edge.from} - ${edge.to}, Публикация: ${edge.label}`;
-        visitedAuthorsElement.appendChild(edgeElement);
+      const depthSelect = $('#depth-search-dropdown');
+      for (let depth = 0; depth <= 10; depth++) {
+        depthSelect.append(`<option value="${depth}">${depth}</option>`);
+      }
+
+      depthSelect.on('change', function() {
+        performDepthSearch(depthSelect.val());
       });
-    }
 
-    // Функция для рекурсивного поиска в глубину
-    function depthFirstSearch(nodeId, currentDepth, visitedNodes, visitedAuthors, visitedEdges) {
-      if (currentDepth === 0 || visitedNodes.has(nodeId)) {
-        return;
-      }
-      visitedNodes.add(nodeId);
-      const node = nodes.get(nodeId);
-      const author = { id: node.id, name: node.label }; // Предполагаем, что узел содержит имя автора в свойстве 'label'
-      visitedAuthors.push(author); // Добавляем автора в массив посещенных авторов
-      const neighbors = network.getConnectedEdges(nodeId);
-      for (const edge of neighbors) {
-        if (!visitedEdges.some(e => e.from === edge.from && e.to === edge.to)) {
-          visitedEdges.push(edge);
+      function performDepthSearch(depth) {
+        const selectedAuthorId = $('#author-search-dropdown').val();
+        if (selectedAuthorId) {
+          const startNodeId = selectedAuthorId;
+          const visitedNodes = new Set();
+          const visitedAuthors = [];
+          depthFirstSearch(startNodeId, depth, visitedNodes, visitedAuthors);
+
+          const visitedAuthorsElement = document.getElementById('depth-authors');
+          visitedAuthorsElement.innerHTML = '';
+          visitedAuthors.forEach(author => {
+            const authorElement = document.createElement('p');
+            authorElement.textContent = `Посещен узел: ${author.id}, Автор: ${author.name}`;
+            visitedAuthorsElement.appendChild(authorElement);
+          });
         }
-        const neighborId = edge.from === nodeId ? edge.to : edge.from;
-        depthFirstSearch(neighborId, currentDepth - 1, visitedNodes, visitedAuthors, visitedEdges);
       }
-    }
 
-    $('#value-search-dropdown').on('change', function() {
-        const filterValue = $(this).val();
-        if (filterValue) {
-            $.getJSON('/bd_graph.php?filter=' + encodeURIComponent(filterValue), graphData => {
-                network.setData(graphData);
-            });
+      function depthFirstSearch(nodeId, currentDepth, visitedNodes, visitedAuthors) {
+        if (currentDepth === 0 || visitedNodes.has(nodeId)) {
+          return;
         }
-    });
+        visitedNodes.add(nodeId);
+        const node = nodes.get(nodeId);
+        const author = { id: node.id, name: node.label };
+        visitedAuthors.push(author);
+        const neighbors = network.getConnectedEdges(nodeId);
+        for (const edge of neighbors) {
+          const neighborId = edge.from === nodeId ? edge.to : edge.from;
+          depthFirstSearch(neighborId, currentDepth - 1, visitedNodes, visitedAuthors);
+        }
+      }
+
+  
 
     });
+  
   </script>
   <div id="filter-menu">
     <div id="au">
@@ -279,11 +208,11 @@
     <div id="au">
       <h3>Глубина поиска:</h3>
       <select id="depth-search-dropdown"></select>
-      <button id="clear-depth-search">Очистить</button> 
     </div>
   </div> 
   <div id="visited-authors">
     <h1 id="text">Поиск в глубину:</h1>
+    <ol id="depth-authors"></ol>
     <button id="clear-visited-selection">Очистить</button> 
   </div>
   <div id="text-l">
