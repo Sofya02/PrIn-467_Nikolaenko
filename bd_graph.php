@@ -5,8 +5,16 @@ $authorId = isset($_GET['author_id']) ? intval($_GET['author_id']) : null;
 $typeId = isset($_GET['type_id']) ? intval($_GET['type_id']) : null;
 
 if ($authorId) {
-    $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications FROM authors a 
-    LEFT JOIN authorpublication ap ON a.id = ap.IdAuthors WHERE a.id = $authorId GROUP BY a.id, a.name");
+    // $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications FROM authors a 
+    // LEFT JOIN authorpublication ap ON a.id = ap.IdAuthors WHERE a.id = $authorId GROUP BY a.id, a.name");
+    $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications, 
+    CASE WHEN EXISTS (SELECT 1 FROM authorpublication ap1 
+                      JOIN authorpublication ap2 ON ap1.IdPublications = ap2.IdPublications AND ap1.IdAuthors != ap2.IdAuthors 
+                      WHERE ap1.IdAuthors = a.id) THEN 1 ELSE 0 END AS has_joint_works 
+    FROM authors a 
+    LEFT JOIN authorpublication ap ON a.id = ap.IdAuthors 
+    WHERE a.id = $authorId 
+    GROUP BY a.id, a.name");
 } else {
     $authors = mysqli_query($connection, "SELECT a.id, a.name, COUNT(ap.IdPublications) AS total_publications, 
     CASE WHEN EXISTS (SELECT 1 FROM authorpublication ap1 JOIN authorpublication ap2 ON ap1.IdPublications = ap2.IdPublications AND ap1.IdAuthors != ap2.IdAuthors 
