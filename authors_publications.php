@@ -32,9 +32,15 @@ if ($authorId) {
         ];
     }
 
+
+
+
     mysqli_close($connection);
 
     header('Content-Type: application/json');
     echo json_encode(['author' => $authorData, 'publications' => $publicationsData]);
 }
 ?>
+
+
+

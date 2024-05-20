@@ -28,15 +28,6 @@
       <h3>Автор:</h3>
       <select id="author-search-dropdown" name="authors">
         <option>---</option>
-        <?php
-          $result = mysqli_query($connection, "SELECT id, name FROM authors");
-
-          while ($row = mysqli_fetch_assoc($result)) {
-              echo '<option value="' . $row['id'] . '">' . $row['name'] . '</option>';
-          }
-
-          mysqli_close($connection);
-        ?>
       </select>
       <button id="clear-author-search">Очистить</button> 
     </div>

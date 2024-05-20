@@ -148,5 +148,13 @@ $.getJSON('/bd_graph.php', graphData => {
       }
 
   
+    });
 
+
+    $.getJSON('authors.php', function(data) {
+      const authorSelect = $('#author-search-dropdown');
+      authorSelect.append('<option value="">---</option>');
+      data.forEach(author => {
+        authorSelect.append(`<option value="${author.id}">${author.name}</option>`);
+      });
     });
