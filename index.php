@@ -158,35 +158,6 @@
       //   const visitedAuthorsElement = document.getElementById('visited-authors');
       //   visitedAuthorsElement.innerHTML = '';
       // });
-
-      //  // Обработчик для выпадающего списка типа публикации
-      //  $('#type-search-dropdown').on('change', function() {
-      //   const selectedTypeId = $(this).val();
-      //   if (selectedTypeId) {
-      //     // Фильтруем узлы и ребра на основе выбранного типа публикации
-      //     const filteredNodes = new vis.DataSet();
-      //     const filteredEdges = new vis.DataSet();
-
-      //     nodes.forEach(node => {
-      //       if (node.label.includes(selectedTypeId)) {
-      //         filteredNodes.add(node);
-      //       }
-      //     });
-
-      //     edges.forEach(edge => {
-      //       if (edge.label.includes(selectedTypeId)) {
-      //         filteredEdges.add(edge);
-      //       }
-      //     });
-
-      //     // Обновляем данные графа
-      //     const filteredData = {
-      //       nodes: filteredNodes,
-      //       edges: filteredEdges
-      //     };
-      //     network.setData(filteredData);
-      //   }
-      // });
       //////////////////////////////////////////////////#000000
         // Добавляем выпадающий список с возможностью выбора глубины поиска от 0 до 10
     const depthSelect = $('#depth-search-dropdown');
@@ -298,33 +269,14 @@
     </select>
   </div>
   <div id="au">
-    <h1>Тип публикации:</h1>
-    <select id="type-search-dropdown">
-      <script>
-        $(document).ready(function() {
-            // Запрос к базе данных для получения списка типов публикаций
-            $.getJSON('/types_of_publications.php', function(data) {
-                // Заполнение выпадающего списка типами публикаций
-                var $typeDropdown = $('#type-search-dropdown');
-                $typeDropdown.append('<option value="">---</option>');
-                data.forEach(function(type) {
-                    $typeDropdown.append('<option value="' + type.id + '">' + type.name + '</option>');
-                });
-            });
-        });
-       
-      </script>
-    </select>
-  </div>
-  <div id="au">
-  <h1>Количество публикаций:</h1>
+    <h1>Количество публикаций:</h1>
     <select id="value-search-dropdown">
-    <option>---</option>
-    <option>меньше 10</option>
-    <option>11-50</option>
-    <option>51-100</option>
-    <option>больше 100</option>
-  </select>
+      <option>---</option>
+      <option>меньше 10</option>
+      <option>11-50</option>
+      <option>51-100</option>
+      <option>больше 100</option>
+    </select>
   </div>
   <div id="au">
     <h1>Глубина поиска:</h1>
@@ -338,12 +290,6 @@
     <button id="clear-author-selection">Очистить выбор</button> 
     <p id="author-info"></p>
     <ol id="publications-list"></ol>
-  </div>
-  <div id="text-l">
-    <h1 id="text">Список совместных публикаций автора:</h1>
-    <button id="clear-author-selection">Очистить выбор</button> 
-    <p id="author-info"></p>
-    <ol id="co-publications-list"></ol>
   </div>
 </body>
 </html>
