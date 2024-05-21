@@ -10,7 +10,7 @@ if ($authorId) {
 
     $authorData = mysqli_fetch_assoc($authorInfo);
 
-    $publications = mysqli_query($connection, "SELECT p.id, p.title, MIN(c.name) AS city_name, MIN(u.name) AS university_name, tp.name AS type_name FROM publications p
+    $publications = mysqli_query($connection, "SELECT p.id, p.title, p.year, c.name AS city_name, u.name AS university_name, tp.name AS type_name FROM publications p
     JOIN authorpublication ap ON p.id = ap.IdPublications 
     LEFT JOIN companypublication cp ON ap.IdPublications = cp.IdPublications 
     LEFT JOIN universities u ON cp.IdUniversities = u.id 
@@ -18,8 +18,7 @@ if ($authorId) {
     LEFT JOIN cities c ON cp2.IdCities = c.id 
     LEFT JOIN types_of_publications tp ON p.type_id = tp.id 
     WHERE ap.IdAuthors = $authorId 
-    GROUP BY tp.name, p.id, p.title 
-    ORDER BY tp.name, p.title");
+    ORDER BY p.title");
 
     $publicationsData = [];
     while ($row = mysqli_fetch_assoc($publications)) {
@@ -29,6 +28,7 @@ if ($authorId) {
             'city' => $row['city_name'],
             'university' => $row['university_name'],
             'type_name' => $row['type_name'],
+            'year' => $row['year'],
         ];
     }
 

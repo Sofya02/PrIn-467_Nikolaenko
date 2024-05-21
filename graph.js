@@ -5,7 +5,7 @@ $.getJSON('/bd_graph.php', graphData => {
       const container = document.getElementById('author_network');
       const data = {
         nodes: nodes,
-        edges: edges
+        edges: edges,
       };
 
       const options = {
@@ -74,7 +74,8 @@ $.getJSON('/bd_graph.php', graphData => {
                         publicationsByType[publication.type_name].push({
                             title: publication.title,
                             city: publication.city,
-                            university: publication.university
+                            university: publication.university,
+                            year:  extractYear(publication.year),
                         });
                     });
     
@@ -84,7 +85,7 @@ $.getJSON('/bd_graph.php', graphData => {
                         listItem.innerHTML = `<h3>${typeName}</h3>`;
                         publicationsByType[typeName].forEach((publication, index) => {
                             const publicationItem = document.createElement('p');
-                            publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Город: ${publication.city}, Университет: ${publication.university})`;
+                            publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Год: ${publication.year}, Город: ${publication.city}, Университет: ${publication.university})`;
                             listItem.appendChild(publicationItem);
                         });
                         publicationsList.appendChild(listItem);
@@ -118,12 +119,18 @@ $.getJSON('/bd_graph.php', graphData => {
                         listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совм. публ.`;
                         coPublications[authorId].publications.forEach((publication, index) => {
                             const publicationItem = document.createElement('p');
-                            publicationItem.innerHTML = `${index + 1}. ${publication.title} (Город: ${publication.city}, Университет: ${publication.university})`;/*(Авторы: ${publication.authors.join(', ')})*/
+                            publicationItem.innerHTML = `${index + 1}. ${publication.title}`;
                             listItem.appendChild(publicationItem);
                         });
                         coPublicationsList.appendChild(listItem);
                     }
                 });
+
+                function extractYear(yearString) {
+                  const match = yearString.match(/\b\d{4}\b/); // Ищет четырехзначное число
+                  return match ? parseInt(match[0], 10) : null; // Преобразуем найденное число в int
+              }
+           
         }
     });
 
@@ -140,6 +147,7 @@ $.getJSON('/bd_graph.php', graphData => {
         $('#author-info').empty();
         $('#co-publications-list').empty();
         $('#publications-list').empty();
+        $('#chart-container').empty();
       });
 
       //обработчик для кнопки очистки графа после выбора автора
