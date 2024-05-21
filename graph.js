@@ -150,10 +150,22 @@ $.getJSON('/bd_graph.php', graphData => {
   
     });
 
-
     $.getJSON('authors.php', function(data) {
       const authorSelect = $('#author-search-dropdown');
       authorSelect.append('<option value="">---</option>');
+    
+      // Функция для извлечения фамилии из строки
+      function extractSurname(name) {
+        const parts = name.split(' ');
+        return parts[parts.length - 1];
+      }
+    
+      // Сортировка данных об авторах по фамилии
+      data.sort(function(a, b) {
+        return extractSurname(a.name).localeCompare(extractSurname(b.name));
+      });
+    
+      // Добавление отсортированных данных в select
       data.forEach(author => {
         authorSelect.append(`<option value="${author.id}">${author.name}</option>`);
       });
