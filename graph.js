@@ -61,7 +61,7 @@ $.getJSON('/bd_graph.php', graphData => {
               publicationsList.innerHTML = '';
               const authorName = data.author.name;
               const totalPublications = data.author.total_publications;
-              const hasJointWorks = data.author.has_joint_works;////
+              // const hasJointWorks = data.author.has_joint_works;////
 
               const authorInfoElement = document.getElementById('author-info');
               authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
@@ -94,15 +94,32 @@ $.getJSON('/bd_graph.php', graphData => {
         }
       });
 
-      //обработчик для кнопки очистки выбора автора
+      const url = "/bd_graph.php";
+      function getJSONData(url) {
+        return $.getJSON(url, graphData => {
+          network.setData(graphData);
+        });
+      }
+
+      //обработчик для кнопки очистки списка публикаций автора
       $('#clear-author-selection').on('click', function() {
         $('#author-info').empty();
         $('#publications-list').empty();
       });
 
-      //обработчик для кнопки очистки выбора автора
+      //обработчик для кнопки очистки поиска в глубину
       $('#clear-visited-selection').on('click', function() {
         $('#depth-authors').empty();
+      });
+
+      //обработчик для кнопки очистки графа после выбора автора
+      $('#clear-author-search').on('click', function() {
+        getJSONData(url);
+      });
+
+      //обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
+      $('#clear-value-search').on('click', function() {
+        getJSONData(url);
       });
 
       const depthSelect = $('#depth-search-dropdown');

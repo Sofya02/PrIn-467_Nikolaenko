@@ -65,9 +65,6 @@ while ($row = mysqli_fetch_assoc($edges)) {
     ];
 }
 
-
-
-
 mysqli_close($connection);
 
 header('Content-Type: application/json');

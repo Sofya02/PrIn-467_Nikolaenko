@@ -32,9 +32,6 @@ if ($authorId) {
         ];
     }
 
-
-
-
     mysqli_close($connection);
 
     header('Content-Type: application/json');

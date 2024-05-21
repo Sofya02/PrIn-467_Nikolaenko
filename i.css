@@ -40,7 +40,7 @@ body {
 
 #filter-menu #au {
     display: inline-block;
-    margin-right: 10px; /* Отступ между элементами, если нужен */
+    margin-right: 10px; /* Отступ между элементами */
 }
 
 #filter-menu #au:last-child {
