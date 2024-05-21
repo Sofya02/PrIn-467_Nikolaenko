@@ -15,11 +15,11 @@
   <div id="filter-menu">
     <div id="au">
       <div id="controls">
-        <input type="checkbox" id="showJointWorks" name="showJointWorks" value="false">
+        <input type="checkbox" id="showJointWorks" name="showJointWorks" value="true">
         <label for="showJointWorks">Авторы с совместными публикациями</label>
       </div>
       <div id="controls">
-        <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="false">
+        <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="true">
         <label for="showJointWorks">Авторы без совместных публикаций</label>
       </div>
     </div>
@@ -42,16 +42,7 @@
       </select>
       <button id="clear-value-search">Очистить</button> 
     </div>
-    <div id="au">
-      <h3>Глубина поиска:</h3>
-      <select id="depth-search-dropdown"></select>
-    </div>
   </div> 
-  <div id="visited-authors">
-    <h1 id="text">Поиск в глубину:</h1>
-    <ol id="depth-authors"></ol>
-    <button id="clear-visited-selection">Очистить</button> 
-  </div>
   <div id="text-l">
     <h1 id="text">Список публикаций автора:</h1>
     <button id="clear-author-selection">Очистить</button> 
