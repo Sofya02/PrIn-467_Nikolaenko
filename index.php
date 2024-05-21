@@ -15,11 +15,11 @@
   <div id="filter-menu">
     <div id="au">
       <div id="controls">
-        <input type="checkbox" id="showJointWorks" name="showJointWorks" value="true">
+        <input type="checkbox" id="showJointWorks" name="showJointWorks" value="false">
         <label for="showJointWorks">Авторы с совместными публикациями</label>
       </div>
       <div id="controls">
-        <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="true">
+        <input type="checkbox" id="showNoJointWorks" name="showNoJointWorks" value="false">
         <label for="showJointWorks">Авторы без совместных публикаций</label>
       </div>
     </div>
@@ -56,6 +56,7 @@
     <h1 id="text">Список публикаций автора:</h1>
     <button id="clear-author-selection">Очистить</button> 
     <p id="author-info"></p>
+    <ol id="co-publications-list"></ol>
     <ol id="publications-list"></ol>
   </div>
 </body>

@@ -51,48 +51,115 @@ $.getJSON('/bd_graph.php', graphData => {
         }
       });
 
+
+
       network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
-          fetch('/authors_publications.php?author_id=' + nodeId)
-            .then(response => response.json())
-            .then(data => {
-              const publicationsList = document.getElementById('publications-list');
-              publicationsList.innerHTML = '';
-              const authorName = data.author.name;
-              const totalPublications = data.author.total_publications;
-              // const hasJointWorks = data.author.has_joint_works;////
+            fetch('/authors_publications.php?author_id=' + nodeId)
+                .then(response => response.json())
+                .then(data => {
+                    const publicationsList = document.getElementById('publications-list');
+                    publicationsList.innerHTML = '';
+                    const authorName = data.author.name;
+                    const totalPublications = data.author.total_publications;
 
-              const authorInfoElement = document.getElementById('author-info');
-              authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
+                    const authorInfoElement = document.getElementById('author-info');
+                    authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
 
-              // Создаем объект для группировки публикаций по типу
-              const publicationsByType = {};
-              data.publications.forEach(publication => {
-                if (!publicationsByType[publication.type_name]) {
-                  publicationsByType[publication.type_name] = [];
-                }
-                publicationsByType[publication.type_name].push({
-                  title: publication.title,
-                  city: publication.city,
-                  university: publication.university
+                    // Создаем объект для группировки публикаций по типу
+                    const publicationsByType = {};
+                    data.publications.forEach(publication => {
+                        if (!publicationsByType[publication.type_name]) {
+                            publicationsByType[publication.type_name] = [];
+                        }
+                        publicationsByType[publication.type_name].push({
+                            title: publication.title,
+                            city: publication.city,
+                            university: publication.university
+                        });
+                    });
+
+                    // Выводим список публикаций, сгруппированных по типу
+                    for (const typeName in publicationsByType) {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<h3>${typeName}</h3>`;
+                        publicationsByType[typeName].forEach((publication, index) => {
+                            const publicationItem = document.createElement('p');
+                            publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Город: ${publication.city}, Университет: ${publication.university})`;
+                            listItem.appendChild(publicationItem);
+                        });
+                        publicationsList.appendChild(listItem);
+                    }
+
+                    // Собираем информацию о совместных работах
+                    const coAuthors = {};
+                    edges.forEach(edge => {
+                        if (edge.from === nodeId || edge.to === nodeId) {
+                            const otherAuthorId = edge.from === nodeId ? edge.to : edge.from;
+                            if (!coAuthors[otherAuthorId]) {
+                                coAuthors[otherAuthorId] = 0;
+                            }
+                            coAuthors[otherAuthorId]++;
+                        }
+                    });
+
+                    // Выводим список совместных работ
+                    const coPublicationsList = document.getElementById('co-publications-list');
+                    coPublicationsList.innerHTML = '';
+                    for (const authorId in coAuthors) {
+                        const authorNode = nodes.get(authorId);
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<strong>${authorNode.label}</strong>: ${coAuthors[authorId]} совместных работ`;
+                        coPublicationsList.appendChild(listItem);
+                    }
                 });
-              });
-
-              // Выводим список публикаций, сгруппированных по типу
-              for (const typeName in publicationsByType) {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `<h3>${typeName}</h3>`;
-                publicationsByType[typeName].forEach((publication, index) => {
-                  const publicationItem = document.createElement('p');
-                  publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Город: ${publication.city}, Университет: ${publication.university})`;
-                  listItem.appendChild(publicationItem);
-                });
-                publicationsList.appendChild(listItem);
-              }
-            });
         }
-      });
+    });
+
+
+
+      // network.on('click', function(event) {
+      //   const nodeId = event.nodes[0];
+      //   if (nodeId) {
+      //     fetch('/authors_publications.php?author_id=' + nodeId)
+      //       .then(response => response.json())
+      //       .then(data => {
+      //         const publicationsList = document.getElementById('publications-list');
+      //         publicationsList.innerHTML = '';
+      //         const authorName = data.author.name;
+      //         const totalPublications = data.author.total_publications;
+
+      //         const authorInfoElement = document.getElementById('author-info');
+      //         authorInfoElement.innerHTML = `<h2> ${authorName}, ${totalPublications} пуб. </h2>`;
+
+      //         // Создаем объект для группировки публикаций по типу
+      //         const publicationsByType = {};
+      //         data.publications.forEach(publication => {
+      //           if (!publicationsByType[publication.type_name]) {
+      //             publicationsByType[publication.type_name] = [];
+      //           }
+      //           publicationsByType[publication.type_name].push({
+      //             title: publication.title,
+      //             city: publication.city,
+      //             university: publication.university
+      //           });
+      //         });
+
+      //         // Выводим список публикаций, сгруппированных по типу
+      //         for (const typeName in publicationsByType) {
+      //           const listItem = document.createElement('li');
+      //           listItem.innerHTML = `<h3>${typeName}</h3>`;
+      //           publicationsByType[typeName].forEach((publication, index) => {
+      //             const publicationItem = document.createElement('p');
+      //             publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Город: ${publication.city}, Университет: ${publication.university})`;
+      //             listItem.appendChild(publicationItem);
+      //           });
+      //           publicationsList.appendChild(listItem);
+      //         }
+      //       });
+      //   }
+      // });
 
       const url = "/bd_graph.php";
       function getJSONData(url) {
@@ -104,6 +171,7 @@ $.getJSON('/bd_graph.php', graphData => {
       //обработчик для кнопки очистки списка публикаций автора
       $('#clear-author-selection').on('click', function() {
         $('#author-info').empty();
+        $('#co-publications-list').empty();
         $('#publications-list').empty();
       });
 
@@ -187,3 +255,7 @@ $.getJSON('/bd_graph.php', graphData => {
         authorSelect.append(`<option value="${author.id}">${author.name}</option>`);
       });
     });
+
+
+
+   
