@@ -30,14 +30,15 @@ if ($authorId) {
             'type_name' => $row['type_name'],
             'year' => $row['year'],
         ];
+        if (!isset($publicationsByYear[$row['year']])) {
+            $publicationsByYear[$row['year']] = 0;
+        }
+        $publicationsByYear[$row['year']]++;
     }
 
     mysqli_close($connection);
 
     header('Content-Type: application/json');
-    echo json_encode(['author' => $authorData, 'publications' => $publicationsData]);
+    echo json_encode(['author' => $authorData, 'publications' => $publicationsData, 'publicationsByYear' => $publicationsByYear]);
 }
 ?>
-
-
-

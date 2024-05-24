@@ -17,9 +17,6 @@ $.getJSON('/bd_graph.php', graphData => {
                 face: "bold"
             },
         },
-        edges: {
-            label: null, 
-        },
         physics: {
             forceAtlas2Based: {
                 gravitationalConstant: -26,
@@ -268,8 +265,46 @@ $.getJSON('/bd_graph.php', graphData => {
                             event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="fas fa-caret-up"></i>' : 'Показать <i class="fas fa-caret-down"></i>';
                         }
                     });
-                        
+
+                     
+
+                // Удаление предыдущего графика, если он существует
+                const chartElement = document.getElementById('chart');
+                if (chartElement) {
+                    chartElement.remove(); // Удаление элемента canvas
+                }
+
+                // Построение гистограммы
+                const chartData = Object.entries(data.publicationsByYear).map(([year, count]) => ({ year: parseInt(year), count }));
+                const newChartElement = document.createElement('canvas');
+                newChartElement.id = 'chart';
+                document.querySelector('.chart-container').appendChild(newChartElement);
+
+                window.myChart = new Chart(newChartElement, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.map(item => item.year),
+                        datasets: [{
+                            label: 'Количество публикаций',
+                            data: chartData.map(item => item.count),
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
+            })
+            .catch(error => {
+                console.error('There was a problem with your fetch operation:', error);
+            });
+                
 
                 function extractYear(yearString) {
                   const match = yearString.match(/\b\d{4}\b/); // Ищет четырехзначное число
@@ -292,7 +327,10 @@ $.getJSON('/bd_graph.php', graphData => {
         $('#author-info').empty();
         $('#co-publications-list').empty();
         $('#publications-list').empty();
-        $('#chart-container').empty();
+        const chartElement = document.getElementById('chart');
+        if (chartElement) {
+            chartElement.remove(); // Удаление элемента canvas
+        }
       });
 
       //обработчик для кнопки очистки графа после выбора автора

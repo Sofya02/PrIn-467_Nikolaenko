@@ -47,6 +47,9 @@
     <h1 id="text">Список публикаций автора:</h1>
     <button id="clear-author-selection">Очистить</button> 
     <p id="author-info"></p>
+    <div class="chart-container">
+        <canvas id="chart"></canvas>
+    </div>
     <ol id="co-publications-list"></ol>
     <ol id="publications-list"></ol>
   </div>
