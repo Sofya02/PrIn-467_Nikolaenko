@@ -106,6 +106,42 @@ $.getJSON('/bd_graph.php', graphData => {
             network.setData(data);
         }
       });
+
+      // Обработчик для выбора количества публикаций
+      $('#value-search-dropdown').on('change', function() {
+        const selectedValue = $(this).val();
+        if (selectedValue) {
+            const filteredNodes = nodes.get().filter(node => {
+                switch (selectedValue) {
+                    case 'меньше 10':
+                        return node.publications < 10;
+                    case '11-50':
+                        return node.publications >= 11 && node.publications <= 50;
+                    case '51-100':
+                        return node.publications >= 51 && node.publications <= 100;
+                    case 'больше 100':
+                        return node.publications > 100;
+                    default:
+                        return false;
+                }
+            });
+
+            // Создаем новый DataSet с отфильтрованными узлами
+            const filteredNodesSet = new vis.DataSet(filteredNodes);
+
+            // Обновляем данные графа
+            const data = {
+                nodes: filteredNodesSet,
+                edges: edges,
+            };
+
+            // Очищаем текущий граф и устанавливаем новые данные
+            network.setData(data);
+        } else {
+            // Если выбрано "---", возвращаем исходные данные
+            network.setData(data);
+        }
+      });
       
       $('#author-search-dropdown').on('change', function() {
         const selectedAuthorId = $(this).val();

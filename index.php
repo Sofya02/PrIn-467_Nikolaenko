@@ -28,7 +28,6 @@
     <div id="au">
       <h3>Автор:</h3>
       <select id="author-search-dropdown" name="authors">
-        <option>---</option>
       </select>
       <button id="clear-author-search">Очистить</button> 
     </div>
