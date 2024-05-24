@@ -231,20 +231,44 @@ $.getJSON('/bd_graph.php', graphData => {
                             });
                         }
                     });
-    
+
                     // Выводим список совместных работ
                     const coPublicationsList = document.getElementById('co-publications-list');
                     coPublicationsList.innerHTML = '';
                     for (const authorId in coPublications) {
                         const listItem = document.createElement('li');
                         listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совм. публ.`;
+
+                        // Кнопка для управления видимостью списка публикаций
+                        const toggleButton = document.createElement('button');
+                        toggleButton.innerHTML = 'Показать <i class="fas fa-caret-down"></i>';
+                        toggleButton.className = 'toggle-publications';
+                        listItem.appendChild(toggleButton);
+
+                        // Список публикаций для данного соавтора
+                        const publicationsList = document.createElement('ul');
+                        publicationsList.className = 'publications-content';
+                        publicationsList.style.display = 'none'; // Скрываем список публикаций по умолчанию
                         coPublications[authorId].publications.forEach((publication, index) => {
-                            const publicationItem = document.createElement('p');
+                            const publicationItem = document.createElement('li');
                             publicationItem.innerHTML = `${index + 1}. ${publication.title}`;
-                            listItem.appendChild(publicationItem);
+                            publicationsList.appendChild(publicationItem);
                         });
+                        listItem.appendChild(publicationsList);
+
                         coPublicationsList.appendChild(listItem);
                     }
+
+                    // Обработчик для кнопки "Показать"
+                    coPublicationsList.addEventListener('click', function(event) {
+                        if (event.target.classList.contains('toggle-publications')) {
+                            event.preventDefault();
+                            const publicationsContent = event.target.parentElement.querySelector('.publications-content');
+                            publicationsContent.style.display = publicationsContent.style.display === 'block' ? 'none' : 'block';
+                            event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="fas fa-caret-up"></i>' : 'Показать <i class="fas fa-caret-down"></i>';
+                        }
+                    });
+                        
                 });
 
                 function extractYear(yearString) {
