@@ -10,37 +10,102 @@ $.getJSON('/bd_graph.php', graphData => {
 
       const options = {
         nodes: {
-          shape: "dot",
-          font: {
-            size: 24,
-            color: "#000000",
-            face: "bold"
-          },
+            shape: "dot",
+            font: {
+                size: 24,
+                color: "#000000",
+                face: "bold"
+            },
+        },
+        edges: {
+            label: null, 
         },
         physics: {
-          forceAtlas2Based: {
-            gravitationalConstant: -26, 
-            centralGravity: 0.005,
-            springLength: 230, 
-            springConstant: 0.18,
-          },
-          maxVelocity: 146, 
-          solver: "forceAtlas2Based",
-          timestep: 0.35, 
-          stabilization: {
-            iterations: 150, 
-          },
-          barnesHut: {
-            avoidOverlap: 0.5 
-          }
+            forceAtlas2Based: {
+                gravitationalConstant: -26,
+                centralGravity: 0.005,
+                springLength: 230,
+                springConstant: 0.18,
+            },
+            maxVelocity: 146,
+            solver: "forceAtlas2Based",
+            timestep: 0.35,
+            stabilization: {
+                iterations: 150,
+            },
+            barnesHut: {
+                avoidOverlap: 0.5
+            }
         },
         interaction: {
-          dragNodes: true,
-          zoomView: true,
+            dragNodes: true,
+            zoomView: true,
         },
-      };
+    };
 
       const network = new vis.Network(container, data, options);
+
+      // Обработчик для checkbox "Авторы с совместными публикациями"
+      $('#showJointWorks').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Отключаем второй чекбокс
+            $('#showNoJointWorks').prop('checked', false);
+
+            // Фильтруем узлы, оставляя только те, которые имеют соединения
+            const connectedNodes = new Set();
+            edges.forEach(edge => {
+                connectedNodes.add(edge.from);
+                connectedNodes.add(edge.to);
+            });
+
+            // Создаем новый DataSet с узлами, имеющими соединения
+            const filteredNodes = new vis.DataSet(
+                nodes.get().filter(node => connectedNodes.has(node.id))
+            );
+
+            // Обновляем данные графа
+            const data = {
+                nodes: filteredNodes,
+                edges: edges,
+            };
+
+            network.setData(data);
+        } else {
+            // Возвращаем исходные данные, если checkbox отключен
+            network.setData(data);
+        }
+      });
+
+      // Обработчик для checkbox "Авторы без совместных публикаций"
+      $('#showNoJointWorks').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Отключаем первый чекбокс
+            $('#showJointWorks').prop('checked', false);
+
+            // Фильтруем узлы, оставляя только те, которые не имеют соединений
+            const connectedNodes = new Set();
+            edges.forEach(edge => {
+                connectedNodes.add(edge.from);
+                connectedNodes.add(edge.to);
+            });
+
+            // Создаем новый DataSet с узлами, не имеющими соединений
+            const filteredNodes = new vis.DataSet(
+                nodes.get().filter(node => !connectedNodes.has(node.id))
+            );
+
+            // Обновляем данные графа
+            const data = {
+                nodes: filteredNodes,
+                edges: new vis.DataSet(), // Удаляем ребра, так как узлы без соединений не имеют ребер
+            };
+
+            network.setData(data);
+        } else {
+            // Возвращаем исходные данные, если checkbox отключен
+            network.setData(data);
+        }
+      });
       
       $('#author-search-dropdown').on('change', function() {
         const selectedAuthorId = $(this).val();
