@@ -51,14 +51,14 @@ $.getJSON('/bd_graph.php', graphData => {
             // Отключаем второй чекбокс
             $('#showNoJointWorks').prop('checked', false);
 
-            // Фильтруем узлы, оставляя только те, которые имеют соединения
+            // Фильтруем узлы, оставляя только те, у которых есть ребра
             const connectedNodes = new Set();
             edges.forEach(edge => {
                 connectedNodes.add(edge.from);
                 connectedNodes.add(edge.to);
             });
 
-            // Создаем новый DataSet с узлами, имеющими соединения
+            // Создаем новый DataSet с узлами, имеющими ребер
             const filteredNodes = new vis.DataSet(
                 nodes.get().filter(node => connectedNodes.has(node.id))
             );
@@ -82,14 +82,14 @@ $.getJSON('/bd_graph.php', graphData => {
             // Отключаем первый чекбокс
             $('#showJointWorks').prop('checked', false);
 
-            // Фильтруем узлы, оставляя только те, которые не имеют соединений
+            // Фильтруем узлы, оставляя только те, у которых нет ребер
             const connectedNodes = new Set();
             edges.forEach(edge => {
                 connectedNodes.add(edge.from);
                 connectedNodes.add(edge.to);
             });
 
-            // Создаем новый DataSet с узлами, не имеющими соединений
+            // Создаем новый DataSet с узлами, не имеющими ребер
             const filteredNodes = new vis.DataSet(
                 nodes.get().filter(node => !connectedNodes.has(node.id))
             );
@@ -97,7 +97,7 @@ $.getJSON('/bd_graph.php', graphData => {
             // Обновляем данные графа
             const data = {
                 nodes: filteredNodes,
-                edges: new vis.DataSet(), // Удаляем ребра, так как узлы без соединений не имеют ребер
+                edges: new vis.DataSet(), // Удаляем ребра
             };
 
             network.setData(data);
@@ -107,24 +107,44 @@ $.getJSON('/bd_graph.php', graphData => {
         }
       });
 
+      // Функция для фильтрации узлов по количеству публикаций
+      function filterNodesByPublications(node, selectedValue) {
+        switch (selectedValue) {
+            case 'меньше 10':
+                return node.publications < 10;
+            case '11-50':
+                return node.publications >= 11 && node.publications <= 50;
+            case '51-100':
+                return node.publications >= 51 && node.publications <= 100;
+            case 'больше 100':
+                return node.publications > 100;
+            default:
+                return false;
+        }
+      }
+
       // Обработчик для выбора количества публикаций
       $('#value-search-dropdown').on('change', function() {
         const selectedValue = $(this).val();
         if (selectedValue) {
-            const filteredNodes = nodes.get().filter(node => {
-                switch (selectedValue) {
-                    case 'меньше 10':
-                        return node.publications < 10;
-                    case '11-50':
-                        return node.publications >= 11 && node.publications <= 50;
-                    case '51-100':
-                        return node.publications >= 51 && node.publications <= 100;
-                    case 'больше 100':
-                        return node.publications > 100;
-                    default:
-                        return false;
-                }
-            });
+            let filteredNodes;
+
+            if ($('#showJointWorks').is(':checked')) {
+                // Фильтруем узлы, оставляя только те, у которых есть ребра и соответствуют условию по публикациям
+                const connectedNodes = new Set();
+                edges.forEach(edge => {
+                    connectedNodes.add(edge.from);
+                    connectedNodes.add(edge.to);
+                });
+
+                filteredNodes = nodes.get().filter(node => connectedNodes.has(node.id) && filterNodesByPublications(node, selectedValue));
+            } else if ($('#showNoJointWorks').is(':checked')) {
+                // Фильтруем узлы, оставляя только те, у которых нет ребер и соответствуют условию по публикациям
+                filteredNodes = nodes.get().filter(node => !connectedNodes.has(node.id) && filterNodesByPublications(node, selectedValue));
+            } else {
+                // Фильтруем узлы по количеству публикаций без учета наличия ребер
+                filteredNodes = nodes.get().filter(node => filterNodesByPublications(node, selectedValue));
+            }
 
             // Создаем новый DataSet с отфильтрованными узлами
             const filteredNodesSet = new vis.DataSet(filteredNodes);
@@ -253,20 +273,70 @@ $.getJSON('/bd_graph.php', graphData => {
 
       //обработчик для кнопки очистки графа после выбора автора
       $('#clear-author-search').on('click', function() {
+        resetSelectToInitialValue('#author-search-dropdown');
         getJSONData(url);
       });
 
-      //обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
-      $('#clear-value-search').on('click', function() {
-        getJSONData(url);
-      });
+      // Функция для установки выбранного значения в селекте на "---"
+      function resetSelectToInitialValue(selectId) {
+        const selectElement = $(selectId);
+        const initialOptionValue = '---';
+        selectElement.val(initialOptionValue);
+      }
 
+      // Функция для сохранения и восстановления состояния чекбоксов и селекта
+      function saveAndRestoreStates() {
+        // Сохраняем состояние чекбоксов перед очисткой
+        const showJointWorksChecked = $('#showJointWorks').is(':checked');
+        const showNoJointWorksChecked = $('#showNoJointWorks').is(':checked');
+
+        // Устанавливаем выбранному элементу селекта значение "---"
+        resetSelectToInitialValue('#value-search-dropdown');
+
+        // Очищаем граф и загружаем новые данные
+        getJSONData(url, function() {
+            // Восстанавливаем состояние чекбоксов после загрузки новых данных
+            if (showJointWorksChecked) {
+                $('#showJointWorks').prop('checked', true);
+                // Вызываем обработчик чекбокса, если он был включен
+                if (showJointWorksChecked) {
+                    $('#showJointWorks').trigger('change');
+                }
+            } else if (showNoJointWorksChecked) {
+                $('#showNoJointWorks').prop('checked', true);
+                // Вызываем обработчик чекбокса, если он был включен
+                if (showNoJointWorksChecked) {
+                    $('#showNoJointWorks').trigger('change');
+                }
+            }
+        });
+      }
+
+      // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
+      $('#clear-value-search').on('click', saveAndRestoreStates);
+
+      // Функция для загрузки данных с обратным вызовом
+      function getJSONData(url, callback) {
+        // Загрузка данных с сервера
+        $.getJSON(url, function(data) {
+            // Обновление данных графа
+            network.setData({
+                nodes: new vis.DataSet(data.nodes),
+                edges: new vis.DataSet(data.edges)
+            });
+
+            // Вызов функции обратного вызова, если она была предоставлена
+            if (callback) {
+                callback();
+            }
+        });
+      }
   
     });
 
     $.getJSON('authors.php', function(data) {
       const authorSelect = $('#author-search-dropdown');
-      authorSelect.append('<option value="">---</option>');
+      authorSelect.append('<option value="">   </option>');
     
       // Функция для извлечения фамилии из строки
       function extractSurname(name) {
