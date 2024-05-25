@@ -1,139 +1,144 @@
 $.getJSON('/bd_graph.php', graphData => {
-      const nodes = new vis.DataSet(graphData.nodes);
-      const edges = new vis.DataSet(graphData.edges);
+  const nodes = new vis.DataSet(graphData.nodes);
+  const edges = new vis.DataSet(graphData.edges);
 
-      const container = document.getElementById('author_network');
-      const data = {
-        nodes: nodes,
-        edges: edges,
-      };
+  const container = document.getElementById('author_network');
+  const data = {
+    nodes: nodes,
+    edges: edges,
+  };
 
-      const options = {
-        nodes: {
-            shape: "dot",
-            font: {
-                size: 24,
-                color: "#000000",
-                face: "bold"
-            },
+  const options = {
+    nodes: {
+        shape: "dot",
+        font: {
+            size: 24,
+            color: "#000000",
+            face: "bold"
         },
-        physics: {
-            forceAtlas2Based: {
-                gravitationalConstant: -26,
-                centralGravity: 0.005,
-                springLength: 230,
-                springConstant: 0.18,
-            },
-            maxVelocity: 146,
-            solver: "forceAtlas2Based",
-            timestep: 0.35,
-            stabilization: {
-                iterations: 150,
-            },
-            barnesHut: {
-                avoidOverlap: 0.5
+    },
+    physics: {
+        forceAtlas2Based: {
+            gravitationalConstant: -26,
+            centralGravity: 0.005,
+            springLength: 230,
+            springConstant: 0.18,
+        },
+        maxVelocity: 146,
+        solver: "forceAtlas2Based",
+        timestep: 0.35,
+        stabilization: {
+            iterations: 150,
+        },
+        barnesHut: {
+            avoidOverlap: 0.5
+        }
+    },
+    interaction: {
+        dragNodes: true,
+        zoomView: true,
+    },
+};
+
+  const network = new vis.Network(container, data, options);
+
+    //Функция обработки добавления узлов в множество на основе ребер
+    function createConnectedNodesSet(edges) {
+        const connectedNodes = new Set();
+        edges.forEach(edge => {
+            connectedNodes.add(edge.from);
+            connectedNodes.add(edge.to);
+        });
+        return connectedNodes;
+    }
+
+    //Функци управление отображением узлов, связанных с совместными работами, на основе состояния чекбокса.
+    function handleJointWorksCheckbox(checkboxId) {
+        $(`#${checkboxId}`).on('change', function() {
+            if ($(this).is(':checked')) {
+                // Отключаем второй чекбокс
+                $(`#showNoJointWorks`).prop('checked', false);
+
+                // Вызов функции с передачей массива ребер
+                const connectedNodes = createConnectedNodesSet(edges);
+
+                // Создаем новый DataSet с узлами, имеющими ребер
+                const filteredNodes = new vis.DataSet(
+                    nodes.get().filter(node => connectedNodes.has(node.id))
+                );
+
+                // Обновляем данные графа
+                const data = {
+                    nodes: filteredNodes,
+                    edges: edges,
+                };
+
+                network.setData(data);
+            } else {
+                // Возвращаем исходные данные, если checkbox отключен
+                network.setData(data);
             }
-        },
-        interaction: {
-            dragNodes: true,
-            zoomView: true,
-        },
-    };
+        });
+    }
 
-      const network = new vis.Network(container, data, options);
+    ////Функци управление отображением узлов, связанных без совместных работ, на основе состояния чекбокса.
+    function handleNoJointWorksCheckbox(checkboxId) {
+        $(`#${checkboxId}`).on('change', function() {
+            if ($(this).is(':checked')) {
+                // Отключаем первый чекбокс
+                $('#showJointWorks').prop('checked', false);
 
-      // Обработчик для checkbox "Авторы с совместными публикациями"
-      $('#showJointWorks').on('change', function() {
-        if ($(this).is(':checked')) {
-            // Отключаем второй чекбокс
-            $('#showNoJointWorks').prop('checked', false);
+                // Вызов функции с передачей массива ребер
+                const connectedNodes = createConnectedNodesSet(edges);
 
-            // Фильтруем узлы, оставляя только те, у которых есть ребра
-            const connectedNodes = new Set();
-            edges.forEach(edge => {
-                connectedNodes.add(edge.from);
-                connectedNodes.add(edge.to);
-            });
+                // Создаем новый DataSet с узлами, не имеющими ребер
+                const filteredNodes = new vis.DataSet(
+                    nodes.get().filter(node => !connectedNodes.has(node.id))
+                );
 
-            // Создаем новый DataSet с узлами, имеющими ребер
-            const filteredNodes = new vis.DataSet(
-                nodes.get().filter(node => connectedNodes.has(node.id))
-            );
+                // Обновляем данные графа
+                const data = {
+                    nodes: filteredNodes,
+                    edges: new vis.DataSet(), // Удаляем ребра
+                };
 
-            // Обновляем данные графа
-            const data = {
-                nodes: filteredNodes,
-                edges: edges,
-            };
+                network.setData(data);
+            } else {
+                // Возвращаем исходные данные, если checkbox отключен
+                network.setData(data);
+            }
+        });
+    }
 
-            network.setData(data);
-        } else {
-            // Возвращаем исходные данные, если checkbox отключен
-            network.setData(data);
-        }
-      });
+    handleJointWorksCheckbox('showJointWorks');
+    handleNoJointWorksCheckbox('showNoJointWorks');
 
-      // Обработчик для checkbox "Авторы без совместных публикаций"
-      $('#showNoJointWorks').on('change', function() {
-        if ($(this).is(':checked')) {
-            // Отключаем первый чекбокс
-            $('#showJointWorks').prop('checked', false);
+  // Функция для фильтрации узлов по количеству публикаций
+  function filterNodesByPublications(node, selectedValue) {
+    switch (selectedValue) {
+        case 'меньше 10':
+            return node.publications < 10;
+        case '11-50':
+            return node.publications >= 11 && node.publications <= 50;
+        case '51-100':
+            return node.publications >= 51 && node.publications <= 100;
+        case 'больше 100':
+            return node.publications > 100;
+        default:
+            return false;
+    }
+  }
 
-            // Фильтруем узлы, оставляя только те, у которых нет ребер
-            const connectedNodes = new Set();
-            edges.forEach(edge => {
-                connectedNodes.add(edge.from);
-                connectedNodes.add(edge.to);
-            });
-
-            // Создаем новый DataSet с узлами, не имеющими ребер
-            const filteredNodes = new vis.DataSet(
-                nodes.get().filter(node => !connectedNodes.has(node.id))
-            );
-
-            // Обновляем данные графа
-            const data = {
-                nodes: filteredNodes,
-                edges: new vis.DataSet(), // Удаляем ребра
-            };
-
-            network.setData(data);
-        } else {
-            // Возвращаем исходные данные, если checkbox отключен
-            network.setData(data);
-        }
-      });
-
-      // Функция для фильтрации узлов по количеству публикаций
-      function filterNodesByPublications(node, selectedValue) {
-        switch (selectedValue) {
-            case 'меньше 10':
-                return node.publications < 10;
-            case '11-50':
-                return node.publications >= 11 && node.publications <= 50;
-            case '51-100':
-                return node.publications >= 51 && node.publications <= 100;
-            case 'больше 100':
-                return node.publications > 100;
-            default:
-                return false;
-        }
-      }
-
-      // Обработчик для выбора количества публикаций
-      $('#value-search-dropdown').on('change', function() {
+  //Функция фильтрации графа по количеству публикаций автора
+  function handleValueSearchDropdown() {
+    $('#value-search-dropdown').on('change', function() {
         const selectedValue = $(this).val();
         if (selectedValue) {
             let filteredNodes;
 
             if ($('#showJointWorks').is(':checked')) {
                 // Фильтруем узлы, оставляя только те, у которых есть ребра и соответствуют условию по публикациям
-                const connectedNodes = new Set();
-                edges.forEach(edge => {
-                    connectedNodes.add(edge.from);
-                    connectedNodes.add(edge.to);
-                });
-
+                const connectedNodes = createConnectedNodesSet(edges);
                 filteredNodes = nodes.get().filter(node => connectedNodes.has(node.id) && filterNodesByPublications(node, selectedValue));
             } else if ($('#showNoJointWorks').is(':checked')) {
                 // Фильтруем узлы, оставляя только те, у которых нет ребер и соответствуют условию по публикациям
@@ -158,265 +163,293 @@ $.getJSON('/bd_graph.php', graphData => {
             // Если выбрано "---", возвращаем исходные данные
             network.setData(data);
         }
-      });
-      
-      $('#author-search-dropdown').on('change', function() {
-        const selectedAuthorId = $(this).val();
-        if (selectedAuthorId) {
-          $.getJSON('/bd_graph.php?author_id=' + selectedAuthorId, graphData => {
-            network.setData(graphData);
-          });
-        }
-      });
+    });
+}
 
-      network.on('click', function(event) {
+// Вызов функции
+handleValueSearchDropdown();
+  
+  $('#author-search-dropdown').on('change', function() {
+    const selectedAuthorId = $(this).val();
+    if (selectedAuthorId) {
+      $.getJSON('/bd_graph.php?author_id=' + selectedAuthorId, graphData => {
+        network.setData(graphData);
+      });
+    }
+  });
+
+  function groupPublicationsByType(data) {
+    const publicationsByType = {};
+    data.publications.forEach(publication => {
+        if (!publicationsByType[publication.type_name]) {
+            publicationsByType[publication.type_name] = [];
+        }
+        publicationsByType[publication.type_name].push({
+            title: publication.title,
+            city: publication.city,
+            university: publication.university,
+            year: extractYear(publication.year),
+        });
+    });
+    return publicationsByType;
+}
+
+function displayPublicationsByType(publicationsByType) {
+    const publicationsList = document.getElementById('publications-list');
+    publicationsList.innerHTML = '';
+    for (const typeName in publicationsByType) {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<h3>${typeName}</h3>`;
+        publicationsByType[typeName].forEach((publication, index) => {
+            const publicationItem = document.createElement('p');
+            publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Год: ${publication.year}, Город: ${publication.city}, Университет: ${publication.university})`;
+            listItem.appendChild(publicationItem);
+        });
+        publicationsList.appendChild(listItem);
+    }
+}
+
+function collectCoPublications(data, nodeId) {
+    const coPublications = {};
+    edges.forEach(edge => {
+        if (edge.from === nodeId || edge.to === nodeId) {
+            const otherAuthorId = edge.from === nodeId ? edge.to : edge.from;
+            const otherAuthorNode = nodes.get(otherAuthorId);
+            if (!coPublications[otherAuthorId]) {
+                coPublications[otherAuthorId] = {
+                    count: 0,
+                    publications: []
+                };
+            }
+            coPublications[otherAuthorId].count++;
+            coPublications[otherAuthorId].publications.push({
+                title: edge.label,
+                authors: [data.author.name, otherAuthorNode.label]
+            });
+        }
+    });
+    return coPublications;
+}
+
+function displayCoPublications(coPublications) {
+    const coPublicationsList = document.getElementById('co-publications-list');
+    coPublicationsList.innerHTML = '';
+    for (const authorId in coPublications) {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совм. публ.`;
+        const toggleButton = document.createElement('button');
+        toggleButton.innerHTML = 'Показать <i class="fas fa-caret-down"></i>';
+        toggleButton.className = 'toggle-publications';
+        listItem.appendChild(toggleButton);
+        const publicationsList = document.createElement('ul');
+        publicationsList.className = 'publications-content';
+        publicationsList.style.display = 'none';
+        coPublications[authorId].publications.forEach((publication, index) => {
+            const publicationItem = document.createElement('li');
+            publicationItem.innerHTML = `${index + 1}. ${publication.title}`;
+            publicationsList.appendChild(publicationItem);
+        });
+        listItem.appendChild(publicationsList);
+        coPublicationsList.appendChild(listItem);
+    }
+    coPublicationsList.addEventListener('click', togglePublicationVisibility);
+}
+
+function togglePublicationVisibility(event) {
+    if (event.target.classList.contains('toggle-publications')) {
+        event.preventDefault();
+        const publicationsContent = event.target.parentElement.querySelector('.publications-content');
+        publicationsContent.style.display = publicationsContent.style.display === 'block' ? 'none' : 'block';
+        event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="fas fa-caret-up"></i>' : 'Показать <i class="fas fa-caret-down"></i>';
+    }
+}
+
+function removePreviousChart() {
+    const chartElement = document.getElementById('chart');
+    if (chartElement) {
+        chartElement.remove();
+    }
+}
+
+function createChart(data) {
+    const chartData = Object.entries(data.publicationsByYear).map(([year, count]) => ({ year: parseInt(year), count }));
+    const newChartElement = document.createElement('canvas');
+    newChartElement.id = 'chart';
+    document.querySelector('.chart-container').appendChild(newChartElement);
+    window.myChart = new Chart(newChartElement, {
+        type: 'bar',
+        data: {
+            labels: chartData.map(item => item.year),
+            datasets: [{
+                label: 'Количество публикаций',
+                data: chartData.map(item => item.count),
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+//Функция для работы с инф при нажатии на узел графа
+function handleNodeClick() {
+    network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
             fetch('/authors_publications.php?author_id=' + nodeId)
                 .then(response => response.json())
                 .then(data => {
-                    const publicationsList = document.getElementById('publications-list');
-                    publicationsList.innerHTML = '';
                     const authorName = data.author.name;
                     const totalPublications = data.author.total_publications;
-    
                     const authorInfoElement = document.getElementById('author-info');
                     authorInfoElement.innerHTML = `<h2>${authorName}, ${totalPublications} публ.</h2>`;
-    
-                    // Создаем объект для группировки публикаций по типу
-                    const publicationsByType = {};
-                    data.publications.forEach(publication => {
-                        if (!publicationsByType[publication.type_name]) {
-                            publicationsByType[publication.type_name] = [];
-                        }
-                        publicationsByType[publication.type_name].push({
-                            title: publication.title,
-                            city: publication.city,
-                            university: publication.university,
-                            year:  extractYear(publication.year),
-                        });
-                    });
-    
-                    // Выводим список публикаций, сгруппированных по типу
-                    for (const typeName in publicationsByType) {
-                        const listItem = document.createElement('li');
-                        listItem.innerHTML = `<h3>${typeName}</h3>`;
-                        publicationsByType[typeName].forEach((publication, index) => {
-                            const publicationItem = document.createElement('p');
-                            publicationItem.innerHTML = `<strong>${index + 1}. ${publication.title}</strong> (Год: ${publication.year}, Город: ${publication.city}, Университет: ${publication.university})`;
-                            listItem.appendChild(publicationItem);
-                        });
-                        publicationsList.appendChild(listItem);
-                    }
-    
-                    // Собираем информацию о совместных работах
-                    const coPublications = {};
-                    edges.forEach(edge => {
-                        if (edge.from === nodeId || edge.to === nodeId) {
-                            const otherAuthorId = edge.from === nodeId ? edge.to : edge.from;
-                            const otherAuthorNode = nodes.get(otherAuthorId);
-                            if (!coPublications[otherAuthorId]) {
-                                coPublications[otherAuthorId] = {
-                                    count: 0,
-                                    publications: []
-                                };
-                            }
-                            coPublications[otherAuthorId].count++;
-                            coPublications[otherAuthorId].publications.push({
-                                title: edge.label,
-                                authors: [authorName, otherAuthorNode.label]
-                            });
-                        }
-                    });
 
-                    // Выводим список совместных работ
-                    const coPublicationsList = document.getElementById('co-publications-list');
-                    coPublicationsList.innerHTML = '';
-                    for (const authorId in coPublications) {
-                        const listItem = document.createElement('li');
-                        listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совм. публ.`;
+                    const publicationsByType = groupPublicationsByType(data);
+                    displayPublicationsByType(publicationsByType);
 
-                        // Кнопка для управления видимостью списка публикаций
-                        const toggleButton = document.createElement('button');
-                        toggleButton.innerHTML = 'Показать <i class="fas fa-caret-down"></i>';
-                        toggleButton.className = 'toggle-publications';
-                        listItem.appendChild(toggleButton);
+                    const coPublications = collectCoPublications(data, nodeId);
+                    displayCoPublications(coPublications);
 
-                        // Список публикаций для данного соавтора
-                        const publicationsList = document.createElement('ul');
-                        publicationsList.className = 'publications-content';
-                        publicationsList.style.display = 'none'; // Скрываем список публикаций по умолчанию
-                        coPublications[authorId].publications.forEach((publication, index) => {
-                            const publicationItem = document.createElement('li');
-                            publicationItem.innerHTML = `${index + 1}. ${publication.title}`;
-                            publicationsList.appendChild(publicationItem);
-                        });
-                        listItem.appendChild(publicationsList);
-
-                        coPublicationsList.appendChild(listItem);
-                    }
-
-                    // Обработчик для кнопки "Показать"
-                    coPublicationsList.addEventListener('click', function(event) {
-                        if (event.target.classList.contains('toggle-publications')) {
-                            event.preventDefault();
-                            const publicationsContent = event.target.parentElement.querySelector('.publications-content');
-                            publicationsContent.style.display = publicationsContent.style.display === 'block' ? 'none' : 'block';
-                            event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="fas fa-caret-up"></i>' : 'Показать <i class="fas fa-caret-down"></i>';
-                        }
-                    });
-
-                     
-
-                // Удаление предыдущего графика, если он существует
-                const chartElement = document.getElementById('chart');
-                if (chartElement) {
-                    chartElement.remove(); // Удаление элемента canvas
-                }
-
-                // Построение гистограммы
-                const chartData = Object.entries(data.publicationsByYear).map(([year, count]) => ({ year: parseInt(year), count }));
-                const newChartElement = document.createElement('canvas');
-                newChartElement.id = 'chart';
-                document.querySelector('.chart-container').appendChild(newChartElement);
-
-                window.myChart = new Chart(newChartElement, {
-                    type: 'bar',
-                    data: {
-                        labels: chartData.map(item => item.year),
-                        datasets: [{
-                            label: 'Количество публикаций',
-                            data: chartData.map(item => item.count),
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        }
-                    }
+                    removePreviousChart();
+                    createChart(data);
+                })
+                .catch(error => {
+                    console.error('There was a problem with your fetch operation:', error);
                 });
-            })
-            .catch(error => {
-                console.error('There was a problem with your fetch operation:', error);
-            });
-                
-
-                function extractYear(yearString) {
-                  const match = yearString.match(/\b\d{4}\b/); // Ищет четырехзначное число
-                  return match ? parseInt(match[0], 10) : null; // Преобразуем найденное число в int
-              }
-           
         }
     });
+}
+
+handleNodeClick();
+
+function extractYear(yearString) {
+    const match = yearString.match(/\b\d{4}\b/);
+    return match ? parseInt(match[0], 10) : null;
+}
 
 
-      const url = "/bd_graph.php";
-      function getJSONData(url) {
-        return $.getJSON(url, graphData => {
-          network.setData(graphData);
-        });
+  const url = "/bd_graph.php";
+  function getJSONData(url) {
+    return $.getJSON(url, graphData => {
+      network.setData(graphData);
+    });
+  }
+
+  //Функция для кнопки очистки списка публикаций автора
+  function clearAuthorSelection() {
+    $('#clear-author-selection').on('click', function() {
+      $('#author-info').empty();
+      $('#co-publications-list').empty();
+      $('#publications-list').empty();
+      const chartElement = document.getElementById('chart');
+      if (chartElement) {
+          chartElement.remove(); // Удаление элемента canvas
       }
+    });
+  }
 
-      //обработчик для кнопки очистки списка публикаций автора
-      $('#clear-author-selection').on('click', function() {
-        $('#author-info').empty();
-        $('#co-publications-list').empty();
-        $('#publications-list').empty();
-        const chartElement = document.getElementById('chart');
-        if (chartElement) {
-            chartElement.remove(); // Удаление элемента canvas
-        }
-      });
+  clearAuthorSelection();
 
-      //обработчик для кнопки очистки графа после выбора автора
-      $('#clear-author-search').on('click', function() {
-        resetSelectToInitialValue('#author-search-dropdown');
-        getJSONData(url);
-      });
-
-      // Функция для установки выбранного значения в селекте на "---"
-      function resetSelectToInitialValue(selectId) {
-        const selectElement = $(selectId);
-        const initialOptionValue = '---';
-        selectElement.val(initialOptionValue);
-      }
-
-      // Функция для сохранения и восстановления состояния чекбоксов и селекта
-      function saveAndRestoreStates() {
-        // Сохраняем состояние чекбоксов перед очисткой
-        const showJointWorksChecked = $('#showJointWorks').is(':checked');
-        const showNoJointWorksChecked = $('#showNoJointWorks').is(':checked');
-
-        // Устанавливаем выбранному элементу селекта значение "---"
-        resetSelectToInitialValue('#value-search-dropdown');
-
-        // Очищаем граф и загружаем новые данные
-        getJSONData(url, function() {
-            // Восстанавливаем состояние чекбоксов после загрузки новых данных
-            if (showJointWorksChecked) {
-                $('#showJointWorks').prop('checked', true);
-                // Вызываем обработчик чекбокса, если он был включен
-                if (showJointWorksChecked) {
-                    $('#showJointWorks').trigger('change');
-                }
-            } else if (showNoJointWorksChecked) {
-                $('#showNoJointWorks').prop('checked', true);
-                // Вызываем обработчик чекбокса, если он был включен
-                if (showNoJointWorksChecked) {
-                    $('#showNoJointWorks').trigger('change');
-                }
-            }
-        });
-      }
-
-      // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
-      $('#clear-value-search').on('click', saveAndRestoreStates);
-
-      // Функция для загрузки данных с обратным вызовом
-      function getJSONData(url, callback) {
-        // Загрузка данных с сервера
-        $.getJSON(url, function(data) {
-            // Обновление данных графа
-            network.setData({
-                nodes: new vis.DataSet(data.nodes),
-                edges: new vis.DataSet(data.edges)
-            });
-
-            // Вызов функции обратного вызова, если она была предоставлена
-            if (callback) {
-                callback();
-            }
-        });
-      }
+  //Функция для кнопки очистки графа после выбора автора
+  function clearAuthorSearch() {
+    $('#clear-author-search').on('click', function() {
+      resetSelectToInitialValue('#author-search-dropdown');
+      getJSONData(url);
+    });
+  }
   
-    });
+  clearAuthorSearch();
 
+  // Функция для установки выбранного значения в селекте на "---"
+  function resetSelectToInitialValue(selectId) {
+    const selectElement = $(selectId);
+    const initialOptionValue = '---';
+    selectElement.val(initialOptionValue);
+  }
+
+  // Функция для сохранения и восстановления состояния чекбоксов и селекта
+  function saveAndRestoreStates() {
+    // Сохраняем состояние чекбоксов перед очисткой
+    const showJointWorksChecked = $('#showJointWorks').is(':checked');
+    const showNoJointWorksChecked = $('#showNoJointWorks').is(':checked');
+
+    // Устанавливаем выбранному элементу селекта значение "---"
+    resetSelectToInitialValue('#value-search-dropdown');
+
+    // Очищаем граф и загружаем новые данные
+    getJSONData(url, function() {
+        // Восстанавливаем состояние чекбоксов после загрузки новых данных
+        if (showJointWorksChecked) {
+            $('#showJointWorks').prop('checked', true);
+            // Вызываем обработчик чекбокса, если он был включен
+            if (showJointWorksChecked) {
+                $('#showJointWorks').trigger('change');
+            }
+        } else if (showNoJointWorksChecked) {
+            $('#showNoJointWorks').prop('checked', true);
+            // Вызываем обработчик чекбокса, если он был включен
+            if (showNoJointWorksChecked) {
+                $('#showNoJointWorks').trigger('change');
+            }
+        }
+    });
+  }
+
+  // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
+  function clearValueSearch() {
+    $('#clear-value-search').on('click', saveAndRestoreStates);
+  }
+
+  clearValueSearch();
+
+  // Функция для загрузки данных с обратным вызовом
+  function getJSONData(url, callback) {
+    // Загрузка данных с сервера
+    $.getJSON(url, function(data) {
+        // Обновление данных графа
+        network.setData({
+            nodes: new vis.DataSet(data.nodes),
+            edges: new vis.DataSet(data.edges)
+        });
+
+        // Вызов функции обратного вызова, если она была предоставлена
+        if (callback) {
+            callback();
+        }
+    });
+  }
+
+});
+
+function loadAndSortAuthors() {
     $.getJSON('authors.php', function(data) {
       const authorSelect = $('#author-search-dropdown');
       authorSelect.append('<option value="">   </option>');
-    
+  
       // Функция для извлечения фамилии из строки
       function extractSurname(name) {
         const parts = name.split(' ');
         return parts[parts.length - 1];
       }
-    
+  
       // Сортировка данных об авторах по фамилии
       data.sort(function(a, b) {
         return extractSurname(a.name).localeCompare(extractSurname(b.name));
       });
-    
+  
       // Добавление отсортированных данных в select
       data.forEach(author => {
         authorSelect.append(`<option value="${author.id}">${author.name}</option>`);
       });
     });
+  }
+ 
+  loadAndSortAuthors();
 
-
-
-   
