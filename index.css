@@ -1,4 +1,4 @@
-html,
+/* html,
 body {
   font: 10pt arial;
   padding: 0;
@@ -26,7 +26,7 @@ body {
 #deep,#au {
   padding-left: 50px;
   display: flex;
-  align-items: center; /* выравнивает элементы по вертикали */
+  align-items: center;
   justify-content: space-left; 
 }
 
@@ -37,4 +37,85 @@ body {
 #depth-search-dropdown,#author-search-dropdown{
   margin-left: 100px;
 }
-
+ */
+ html,
+ body {
+   font: 10pt arial;
+   padding: 0;
+   margin: 0;
+   width: 100%;
+   height: 100%;
+   background-color: rgb(247, 241, 227);
+ }
+ 
+ #author_network {
+   width: 100%;
+   height: 70%;
+   border: 1px solid rgb(0, 0, 0);
+   margin-top: 15px;
+   float: left;
+   background: #fff;
+ }
+ 
+ #filter-menu {
+   width: 100%;
+   padding: 15px;
+ }
+ 
+ #au {
+   padding-bottom: 15px;
+ }
+ 
+ #controls {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   margin-bottom: 10px;
+ }
+ 
+ #author-search-dropdown,
+ #value-search-dropdown {
+   width: 100%;
+   margin-top: 10px;
+ }
+ 
+ #text-l {
+   padding-top: 15px;
+   padding-left: 15px;
+   width: 100%;
+   float: left;
+ }
+ 
+ #text,
+ #author-info {
+   padding-left: 15px;
+ }
+ 
+ @media (min-width: 901px) {
+   #author_network {
+     height: 700px;
+   }
+ 
+   #text-l {
+     width: calc(100% - 900px);
+     margin-left: 900px; 
+   }
+ }
+ 
+ @media (max-width: 900px) {
+   #author_network,
+   #text-l {
+     width: 100%;
+     float: none;
+     margin-left: 0;
+   }
+ 
+   #author_network {
+     margin-bottom: 15px;
+   }
+ }
+ 
+ .chart-container {
+   width: 100%;
+   height: 300px;
+ }
