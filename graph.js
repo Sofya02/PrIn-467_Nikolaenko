@@ -1,120 +1,185 @@
-$.getJSON('/bd_graph.php', graphData => {
-  const nodes = new vis.DataSet(graphData.nodes);
-  const edges = new vis.DataSet(graphData.edges);
+function initGraph() {
+    $.getJSON('/bd_graph.php', graphData => {
+    const nodes = new vis.DataSet(graphData.nodes);
+    const edges = new vis.DataSet(graphData.edges);
 
-  const container = document.getElementById('author_network');
-  const data = {
-    nodes: nodes,
-    edges: edges,
-  };
+    const container = document.getElementById('author_network');
+    const data = {
+        nodes: nodes,
+        edges: edges,
+    };
 
-  const options = {
-    nodes: {
-        shape: "dot",
-        font: {
-            size: 24,
-            color: "#000000",
-            face: "bold"
+    const options = {
+        nodes: {
+            shape: "dot",
+            font: {
+                size: 24,
+                color: "#000000",
+                face: "bold"
+            },
         },
-    },
-    physics: {
-        forceAtlas2Based: {
-            gravitationalConstant: -26,
-            centralGravity: 0.005,
-            springLength: 230,
-            springConstant: 0.18,
+        physics: {
+            forceAtlas2Based: {
+                gravitationalConstant: -26,
+                centralGravity: 0.005,
+                springLength: 230,
+                springConstant: 0.18,
+            },
+            maxVelocity: 146,
+            solver: "forceAtlas2Based",
+            timestep: 0.35,
+            stabilization: {
+                iterations: 150,
+            },
+            barnesHut: {
+                avoidOverlap: 0.5
+            }
         },
-        maxVelocity: 146,
-        solver: "forceAtlas2Based",
-        timestep: 0.35,
-        stabilization: {
-            iterations: 150,
-        },
-        barnesHut: {
-            avoidOverlap: 0.5
+            interaction: {
+                dragNodes: true,
+                zoomView: true,
+            },
+        };
+
+        const network = new vis.Network(container, data, options);
+
+
+        handleJointWorksCheckbox('showJointWorks', nodes, edges, network);
+        handleNoJointWorksCheckbox('showNoJointWorks', nodes, edges, network);
+        handleValueSearchDropdown(network, nodes, edges);
+        handleNodeClick(network, nodes, edges);
+        setupAuthorSearchDropdown(network);
+        clearAuthorSelection();
+        clearAuthorSearch(network);
+        clearValueSearch(network);
+
+    });
+}
+
+initGraph();
+
+/**************************************************************************************************** */
+
+function setupAuthorSearchDropdown(network) {
+    $('#author-search-dropdown').on('change', function() {
+      const selectedAuthorId = $(this).val();
+      updateGraphWithAuthorId(selectedAuthorId, network);
+    });
+  }
+
+function updateGraphWithAuthorId(authorId, network) {
+    if (authorId) {
+      $.getJSON('/bd_graph.php?author_id=' + authorId, graphData => {
+        network.setData(graphData);
+      });
+    }
+  }
+
+const url = "/bd_graph.php";
+  function getJSONData(url,network) {
+    return $.getJSON(url, graphData => {
+      network.setData(graphData);
+    });
+  }
+
+//   // Функция для загрузки данных с обратным вызовом
+//   function getJSONData(url, callback, network) {
+//     // Загрузка данных с сервера
+//     $.getJSON(url, function(data) {
+//         // Обновление данных графа
+//         network.setData({
+//             nodes: new vis.DataSet(data.nodes),
+//             edges: new vis.DataSet(data.edges)
+//         });
+
+//         // Вызов функции обратного вызова, если она была предоставлена
+//         if (callback) {
+//             callback();
+//         }
+//     }, network);
+//   }
+
+
+//Функция обработки добавления узлов в множество на основе ребер
+function createConnectedNodesSet(edges) {
+    const connectedNodes = new Set();
+    edges.forEach(edge => {
+        connectedNodes.add(edge.from);
+        connectedNodes.add(edge.to);
+    });
+    return connectedNodes;
+}
+
+//Функци управление отображением узлов, связанных с совместными работами, на основе состояния чекбокса.
+function handleJointWorksCheckbox(checkboxId, nodes, edges, network) {
+    $('#showJointWorks').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Отключаем второй чекбокс
+            $('#showNoJointWorks').prop('checked', false);
+
+            // Вызов функции с передачей массива ребер
+            const connectedNodes = createConnectedNodesSet(edges);
+
+            // Создаем новый DataSet с узлами, имеющими ребер
+            const filteredNodes = new vis.DataSet(
+                nodes.get().filter(node => connectedNodes.has(node.id))
+            );
+
+            // Обновляем данные графа
+            const data = {
+                nodes: filteredNodes,
+                edges: edges,
+            };
+
+            network.setData(data);
+        } else {
+            // Возвращаем исходные данные, если checkbox отключен
+            const originalData = {
+                nodes: nodes,
+                edges: edges,
+            };
+
+            network.setData(originalData);
         }
-    },
-    interaction: {
-        dragNodes: true,
-        zoomView: true,
-    },
-};
+    });
+}
 
-  const network = new vis.Network(container, data, options);
+////Функци управление отображением узлов, связанных без совместных работ, на основе состояния чекбокса.
+function handleNoJointWorksCheckbox(checkboxId, nodes, edges, network) {
+    $('#showNoJointWorks').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Отключаем первый чекбокс
+            $('#showJointWorks').prop('checked', false);
 
-    //Функция обработки добавления узлов в множество на основе ребер
-    function createConnectedNodesSet(edges) {
-        const connectedNodes = new Set();
-        edges.forEach(edge => {
-            connectedNodes.add(edge.from);
-            connectedNodes.add(edge.to);
-        });
-        return connectedNodes;
-    }
+            // Вызов функции с передачей массива ребер
+            const connectedNodes = createConnectedNodesSet(edges);
 
-    //Функци управление отображением узлов, связанных с совместными работами, на основе состояния чекбокса.
-    function handleJointWorksCheckbox(checkboxId) {
-        $(`#${checkboxId}`).on('change', function() {
-            if ($(this).is(':checked')) {
-                // Отключаем второй чекбокс
-                $(`#showNoJointWorks`).prop('checked', false);
+            // Создаем новый DataSet с узлами, не имеющими ребер
+            const filteredNodes = new vis.DataSet(
+                nodes.get().filter(node => !connectedNodes.has(node.id))
+            );
 
-                // Вызов функции с передачей массива ребер
-                const connectedNodes = createConnectedNodesSet(edges);
+            // Обновляем данные графа
+            const data = {
+                nodes: filteredNodes,
+                edges: new vis.DataSet(), // Удаляем ребра
+            };
 
-                // Создаем новый DataSet с узлами, имеющими ребер
-                const filteredNodes = new vis.DataSet(
-                    nodes.get().filter(node => connectedNodes.has(node.id))
-                );
+            network.setData(data);
+        } else {
+            // Возвращаем исходные данные, если checkbox отключен
+            const originalData = {
+                nodes: nodes,
+                edges: edges,
+            };
 
-                // Обновляем данные графа
-                const data = {
-                    nodes: filteredNodes,
-                    edges: edges,
-                };
+            network.setData(originalData);
+        }
+    });
+}
 
-                network.setData(data);
-            } else {
-                // Возвращаем исходные данные, если checkbox отключен
-                network.setData(data);
-            }
-        });
-    }
-
-    ////Функци управление отображением узлов, связанных без совместных работ, на основе состояния чекбокса.
-    function handleNoJointWorksCheckbox(checkboxId) {
-        $(`#${checkboxId}`).on('change', function() {
-            if ($(this).is(':checked')) {
-                // Отключаем первый чекбокс
-                $('#showJointWorks').prop('checked', false);
-
-                // Вызов функции с передачей массива ребер
-                const connectedNodes = createConnectedNodesSet(edges);
-
-                // Создаем новый DataSet с узлами, не имеющими ребер
-                const filteredNodes = new vis.DataSet(
-                    nodes.get().filter(node => !connectedNodes.has(node.id))
-                );
-
-                // Обновляем данные графа
-                const data = {
-                    nodes: filteredNodes,
-                    edges: new vis.DataSet(), // Удаляем ребра
-                };
-
-                network.setData(data);
-            } else {
-                // Возвращаем исходные данные, если checkbox отключен
-                network.setData(data);
-            }
-        });
-    }
-
-    handleJointWorksCheckbox('showJointWorks');
-    handleNoJointWorksCheckbox('showNoJointWorks');
-
-  // Функция для фильтрации узлов по количеству публикаций
-  function filterNodesByPublications(node, selectedValue) {
+// Функция для фильтрации узлов по количеству публикаций
+function filterNodesByPublications(node, selectedValue) {
     switch (selectedValue) {
         case 'меньше 10':
             return node.publications < 10;
@@ -130,7 +195,7 @@ $.getJSON('/bd_graph.php', graphData => {
   }
 
   //Функция фильтрации графа по количеству публикаций автора
-  function handleValueSearchDropdown() {
+  function handleValueSearchDropdown(network, nodes, edges) {
     $('#value-search-dropdown').on('change', function() {
         const selectedValue = $(this).val();
         if (selectedValue) {
@@ -166,19 +231,8 @@ $.getJSON('/bd_graph.php', graphData => {
     });
 }
 
-// Вызов функции
-handleValueSearchDropdown();
-  
-  $('#author-search-dropdown').on('change', function() {
-    const selectedAuthorId = $(this).val();
-    if (selectedAuthorId) {
-      $.getJSON('/bd_graph.php?author_id=' + selectedAuthorId, graphData => {
-        network.setData(graphData);
-      });
-    }
-  });
 
-  function groupPublicationsByType(data) {
+function groupPublicationsByType(data) {
     const publicationsByType = {};
     data.publications.forEach(publication => {
         if (!publicationsByType[publication.type_name]) {
@@ -209,7 +263,7 @@ function displayPublicationsByType(publicationsByType) {
     }
 }
 
-function collectCoPublications(data, nodeId) {
+function collectCoPublications(data, nodeId, nodes, edges) {
     const coPublications = {};
     edges.forEach(edge => {
         if (edge.from === nodeId || edge.to === nodeId) {
@@ -231,7 +285,7 @@ function collectCoPublications(data, nodeId) {
     return coPublications;
 }
 
-function displayCoPublications(coPublications) {
+function displayCoPublications(coPublications, nodes) {
     const coPublicationsList = document.getElementById('co-publications-list');
     coPublicationsList.innerHTML = '';
     for (const authorId in coPublications) {
@@ -272,17 +326,34 @@ function removePreviousChart() {
 }
 
 function createChart(data) {
-    const chartData = Object.entries(data.publicationsByYear).map(([year, count]) => ({ year: parseInt(year), count }));
+    // Предполагаем, что publicationsByYear - это объект вида { год: количество_публикаций }
+    const years = Object.keys(data.publicationsByYear).map(year => parseInt(year, 10));
+    const counts = years.map(year => data.publicationsByYear[year.toString()]);
+
+    // Фильтруем NaN из данных
+    const validCounts = counts.filter(count => !isNaN(count));
+
+    // Сортировка лет в порядке возрастания
+    years.sort((a, b) => a - b);
+
+    // Определяем последний год
+    const lastYear = years[years.length - 1];
+
+    // Удаляем годы, для которых нет данных (если такие есть)
+    const yearsWithData = years.filter((year, index) => !isNaN(validCounts[index]));/**/ 
+
+    removePreviousChart();
+
     const newChartElement = document.createElement('canvas');
     newChartElement.id = 'chart';
     document.querySelector('.chart-container').appendChild(newChartElement);
     window.myChart = new Chart(newChartElement, {
         type: 'bar',
         data: {
-            labels: chartData.map(item => item.year),
+            labels: yearsWithData.map(year => year.toString()),
             datasets: [{
                 label: 'Количество публикаций',
-                data: chartData.map(item => item.count),
+                data: validCounts.filter((count, index) => !isNaN(count) && !isNaN(years[index])),
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 borderColor: 'rgba(75, 192, 192, 1)',
                 borderWidth: 1
@@ -292,14 +363,21 @@ function createChart(data) {
             scales: {
                 y: {
                     beginAtZero: true
+                },
+                x: {
+                    // Указываем, что метки должны быть только из данных
+                    ticks: {
+                        source: 'data'
+                    },
+                    // Ограничиваем ширину графика последним годом
+                    max: lastYear
                 }
             }
         }
     });
 }
-
 //Функция для работы с инф при нажатии на узел графа
-function handleNodeClick() {
+function handleNodeClick(network, nodes, edges) {
     network.on('click', function(event) {
         const nodeId = event.nodes[0];
         if (nodeId) {
@@ -314,8 +392,8 @@ function handleNodeClick() {
                     const publicationsByType = groupPublicationsByType(data);
                     displayPublicationsByType(publicationsByType);
 
-                    const coPublications = collectCoPublications(data, nodeId);
-                    displayCoPublications(coPublications);
+                    const coPublications = collectCoPublications(data, nodeId, nodes, edges);
+                    displayCoPublications(coPublications, nodes);
 
                     removePreviousChart();
                     createChart(data);
@@ -327,23 +405,13 @@ function handleNodeClick() {
     });
 }
 
-handleNodeClick();
-
 function extractYear(yearString) {
     const match = yearString.match(/\b\d{4}\b/);
     return match ? parseInt(match[0], 10) : null;
 }
 
-
-  const url = "/bd_graph.php";
-  function getJSONData(url) {
-    return $.getJSON(url, graphData => {
-      network.setData(graphData);
-    });
-  }
-
-  //Функция для кнопки очистки списка публикаций автора
-  function clearAuthorSelection() {
+//Функция для кнопки очистки списка публикаций автора
+function clearAuthorSelection() {
     $('#clear-author-selection').on('click', function() {
       $('#author-info').empty();
       $('#co-publications-list').empty();
@@ -355,27 +423,31 @@ function extractYear(yearString) {
     });
   }
 
-  clearAuthorSelection();
-
-  //Функция для кнопки очистки графа после выбора автора
-  function clearAuthorSearch() {
+//Функция для кнопки очистки графа после выбора автора
+function clearAuthorSearch(network) {
     $('#clear-author-search').on('click', function() {
       resetSelectToInitialValue('#author-search-dropdown');
-      getJSONData(url);
+      getJSONData(url,network);
     });
   }
-  
-  clearAuthorSearch();
 
-  // Функция для установки выбранного значения в селекте на "---"
-  function resetSelectToInitialValue(selectId) {
+
+// Функция для установки выбранного значения в селекте на "---"
+function resetSelectToInitialValue(selectId) {
     const selectElement = $(selectId);
     const initialOptionValue = '---';
     selectElement.val(initialOptionValue);
   }
 
-  // Функция для сохранения и восстановления состояния чекбоксов и селекта
-  function saveAndRestoreStates() {
+// Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
+function clearValueSearch(network) {
+    $('#clear-value-search').on('click', function() {
+        saveAndRestoreStates(network); 
+    });
+}
+
+ // Функция для сохранения и восстановления состояния чекбоксов и селекта
+ function saveAndRestoreStates(network) {
     // Сохраняем состояние чекбоксов перед очисткой
     const showJointWorksChecked = $('#showJointWorks').is(':checked');
     const showNoJointWorksChecked = $('#showNoJointWorks').is(':checked');
@@ -399,34 +471,9 @@ function extractYear(yearString) {
                 $('#showNoJointWorks').trigger('change');
             }
         }
-    });
+    }, network);
+
   }
-
-  // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
-  function clearValueSearch() {
-    $('#clear-value-search').on('click', saveAndRestoreStates);
-  }
-
-  clearValueSearch();
-
-  // Функция для загрузки данных с обратным вызовом
-  function getJSONData(url, callback) {
-    // Загрузка данных с сервера
-    $.getJSON(url, function(data) {
-        // Обновление данных графа
-        network.setData({
-            nodes: new vis.DataSet(data.nodes),
-            edges: new vis.DataSet(data.edges)
-        });
-
-        // Вызов функции обратного вызова, если она была предоставлена
-        if (callback) {
-            callback();
-        }
-    });
-  }
-
-});
 
 function loadAndSortAuthors() {
     $.getJSON('authors.php', function(data) {
