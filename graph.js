@@ -82,24 +82,6 @@ const url = "/bd_graph.php";
     });
   }
 
-//   // Функция для загрузки данных с обратным вызовом
-//   function getJSONData(url, callback, network) {
-//     // Загрузка данных с сервера
-//     $.getJSON(url, function(data) {
-//         // Обновление данных графа
-//         network.setData({
-//             nodes: new vis.DataSet(data.nodes),
-//             edges: new vis.DataSet(data.edges)
-//         });
-
-//         // Вызов функции обратного вызова, если она была предоставлена
-//         if (callback) {
-//             callback();
-//         }
-//     }, network);
-//   }
-
-
 //Функция обработки добавления узлов в множество на основе ребер
 function createConnectedNodesSet(edges) {
     const connectedNodes = new Set();
@@ -290,20 +272,20 @@ function displayCoPublications(coPublications, nodes) {
     coPublicationsList.innerHTML = '';
     for (const authorId in coPublications) {
         const listItem = document.createElement('li');
-        listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совм. публ.`;
+        listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совместных публикаций`;
         const toggleButton = document.createElement('button');
         toggleButton.innerHTML = 'Показать <i class="fas fa-caret-down"></i>';
         toggleButton.className = 'toggle-publications';
         listItem.appendChild(toggleButton);
-        const publicationsList = document.createElement('ul');
-        publicationsList.className = 'publications-content';
-        publicationsList.style.display = 'none';
+        const publicationsContent = document.createElement('div');
+        publicationsContent.className = 'publications-content';
+        publicationsContent.style.display = 'none';
         coPublications[authorId].publications.forEach((publication, index) => {
-            const publicationItem = document.createElement('li');
+            const publicationItem = document.createElement('p');
             publicationItem.innerHTML = `${index + 1}. ${publication.title}`;
-            publicationsList.appendChild(publicationItem);
+            publicationsContent.appendChild(publicationItem);
         });
-        listItem.appendChild(publicationsList);
+        listItem.appendChild(publicationsContent);
         coPublicationsList.appendChild(listItem);
     }
     coPublicationsList.addEventListener('click', togglePublicationVisibility);
