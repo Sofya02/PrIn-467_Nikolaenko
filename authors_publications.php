@@ -4,21 +4,22 @@ include 'db.php';
 $authorId = isset($_GET['author_id']) ? intval($_GET['author_id']) : null;
 
 if ($authorId) {
-    $authorInfo = mysqli_query($connection, "SELECT a.name, COUNT(ap.IdPublications) AS total_publications FROM authors a
-    LEFT JOIN authorpublication ap ON a.id = ap.IdAuthors
-    WHERE a.id = $authorId");
+    $authorInfo = mysqli_query($connection, "SELECT authors.name, COUNT(authorpublication.IdPublications) AS total_publications FROM authors
+    LEFT JOIN authorpublication ON authors.id = authorpublication.IdAuthors
+    WHERE authors.id = $authorId");
 
     $authorData = mysqli_fetch_assoc($authorInfo);
 
-    $publications = mysqli_query($connection, "SELECT p.id, p.title, p.year, c.name AS city_name, u.name AS university_name, tp.name AS type_name FROM publications p
-    JOIN authorpublication ap ON p.id = ap.IdPublications 
-    LEFT JOIN companypublication cp ON ap.IdPublications = cp.IdPublications 
-    LEFT JOIN universities u ON cp.IdUniversities = u.id 
-    LEFT JOIN citypublication cp2 ON ap.IdPublications = cp2.IdPublications 
-    LEFT JOIN cities c ON cp2.IdCities = c.id 
-    LEFT JOIN types_of_publications tp ON p.type_id = tp.id 
-    WHERE ap.IdAuthors = $authorId 
-    ORDER BY p.title");
+    $publications = mysqli_query($connection, "SELECT publications.id, publications.title, publications.year, cities.name AS city_name, universities.name AS university_name, types_of_publications.name AS type_name 
+    FROM publications 
+    JOIN authorpublication ON publications.id = authorpublication.IdPublications 
+    LEFT JOIN companypublication ON authorpublication.IdPublications = companypublication.IdPublications 
+    LEFT JOIN universities ON companypublication.IdUniversities = universities.id 
+    LEFT JOIN citypublication ON authorpublication.IdPublications = citypublication.IdPublications 
+    LEFT JOIN cities ON citypublication.IdCities = cities.id 
+    LEFT JOIN types_of_publications ON publications.type_id = types_of_publications.id 
+    WHERE authorpublication.IdAuthors = $authorId 
+    ORDER BY publications.title;");
 
     $publicationsData = [];
     while ($row = mysqli_fetch_assoc($publications)) {
