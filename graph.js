@@ -62,6 +62,7 @@ initGraph();
 
 function setupAuthorSearchDropdown(network) {
     $('#author-search-dropdown').on('change', function() {
+      resetSelectToInitialValue('#value-search-dropdown');
       const selectedAuthorId = $(this).val();
       updateGraphWithAuthorId(selectedAuthorId, network);
     });
@@ -92,10 +93,12 @@ function createConnectedNodesSet(edges) {
     return connectedNodes;
 }
 
-//Функци управление отображением узлов, связанных с совместными работами, на основе состояния чекбокса.
+// Функция управления отображением узлов, связанных с совместными работами, на основе состояния чекбокса.
 function handleJointWorksCheckbox(checkboxId, nodes, edges, network) {
     $('#showJointWorks').on('change', function() {
         if ($(this).is(':checked')) {
+            resetSelectToInitialValue('#value-search-dropdown');
+            resetSelectToInitialValue('#author-search-dropdown');
             // Отключаем второй чекбокс
             $('#showNoJointWorks').prop('checked', false);
 
@@ -126,10 +129,12 @@ function handleJointWorksCheckbox(checkboxId, nodes, edges, network) {
     });
 }
 
-////Функци управление отображением узлов, связанных без совместных работ, на основе состояния чекбокса.
+// Функция управления отображением узлов, связанных без совместных работ, на основе состояния чекбокса.
 function handleNoJointWorksCheckbox(checkboxId, nodes, edges, network) {
     $('#showNoJointWorks').on('change', function() {
         if ($(this).is(':checked')) {
+            resetSelectToInitialValue('#value-search-dropdown');
+            resetSelectToInitialValue('#author-search-dropdown');
             // Отключаем первый чекбокс
             $('#showJointWorks').prop('checked', false);
 
@@ -157,6 +162,7 @@ function handleNoJointWorksCheckbox(checkboxId, nodes, edges, network) {
 
             network.setData(originalData);
         }
+
     });
 }
 
@@ -179,22 +185,13 @@ function filterNodesByPublications(node, selectedValue) {
   //Функция фильтрации графа по количеству публикаций автора
   function handleValueSearchDropdown(network, nodes, edges) {
     $('#value-search-dropdown').on('change', function() {
+        resetSelectToInitialValue('#author-search-dropdown');
         const selectedValue = $(this).val();
         if (selectedValue) {
             let filteredNodes;
-
-            if ($('#showJointWorks').is(':checked')) {
-                // Фильтруем узлы, оставляя только те, у которых есть ребра и соответствуют условию по публикациям
-                const connectedNodes = createConnectedNodesSet(edges);
-                filteredNodes = nodes.get().filter(node => connectedNodes.has(node.id) && filterNodesByPublications(node, selectedValue));
-            } else if ($('#showNoJointWorks').is(':checked')) {
-                // Фильтруем узлы, оставляя только те, у которых нет ребер и соответствуют условию по публикациям
-                filteredNodes = nodes.get().filter(node => !connectedNodes.has(node.id) && filterNodesByPublications(node, selectedValue));
-            } else {
-                // Фильтруем узлы по количеству публикаций без учета наличия ребер
-                filteredNodes = nodes.get().filter(node => filterNodesByPublications(node, selectedValue));
-            }
-
+            // Фильтруем узлы по количеству публикаций ребер
+            filteredNodes = nodes.get().filter(node => filterNodesByPublications(node, selectedValue));
+            
             // Создаем новый DataSet с отфильтрованными узлами
             const filteredNodesSet = new vis.DataSet(filteredNodes);
 
@@ -206,13 +203,9 @@ function filterNodesByPublications(node, selectedValue) {
 
             // Очищаем текущий граф и устанавливаем новые данные
             network.setData(data);
-        } else {
-            // Если выбрано "---", возвращаем исходные данные
-            network.setData(data);
-        }
+        } 
     });
 }
-
 
 function groupPublicationsByType(data) {
     const publicationsByType = {};
@@ -274,7 +267,7 @@ function displayCoPublications(coPublications, nodes) {
         const listItem = document.createElement('li');
         listItem.innerHTML = `<strong>${nodes.get(authorId).label}</strong>: ${coPublications[authorId].count} совместных публикаций`;
         const toggleButton = document.createElement('button');
-        toggleButton.innerHTML = 'Показать <i class="fas fa-caret-down"></i>';
+        toggleButton.innerHTML = 'Показать <i class="open-down"></i>';
         toggleButton.className = 'toggle-publications';
         listItem.appendChild(toggleButton);
         const publicationsContent = document.createElement('div');
@@ -296,7 +289,7 @@ function togglePublicationVisibility(event) {
         event.preventDefault();
         const publicationsContent = event.target.parentElement.querySelector('.publications-content');
         publicationsContent.style.display = publicationsContent.style.display === 'block' ? 'none' : 'block';
-        event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="fas fa-caret-up"></i>' : 'Показать <i class="fas fa-caret-down"></i>';
+        event.target.innerHTML = event.target.innerHTML.includes('Показать') ? 'Скрыть <i class="open-up"></i>' : 'Показать <i class="open-down"></i>';
     }
 }
 
@@ -424,38 +417,10 @@ function resetSelectToInitialValue(selectId) {
 // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
 function clearValueSearch(network) {
     $('#clear-value-search').on('click', function() {
-        saveAndRestoreStates(network); 
+        resetSelectToInitialValue('#value-search-dropdown');
+        getJSONData(url,network);
     });
 }
-
- // Функция для сохранения и восстановления состояния чекбоксов и селекта
- function saveAndRestoreStates(network) {
-    // Сохраняем состояние чекбоксов перед очисткой
-    const showJointWorksChecked = $('#showJointWorks').is(':checked');
-    const showNoJointWorksChecked = $('#showNoJointWorks').is(':checked');
-
-    // Устанавливаем выбранному элементу селекта значение "---"
-    resetSelectToInitialValue('#value-search-dropdown');
-
-    // Очищаем граф и загружаем новые данные
-    getJSONData(url, function() {
-        // Восстанавливаем состояние чекбоксов после загрузки новых данных
-        if (showJointWorksChecked) {
-            $('#showJointWorks').prop('checked', true);
-            // Вызываем обработчик чекбокса, если он был включен
-            if (showJointWorksChecked) {
-                $('#showJointWorks').trigger('change');
-            }
-        } else if (showNoJointWorksChecked) {
-            $('#showNoJointWorks').prop('checked', true);
-            // Вызываем обработчик чекбокса, если он был включен
-            if (showNoJointWorksChecked) {
-                $('#showNoJointWorks').trigger('change');
-            }
-        }
-    }, network);
-
-  }
 
 function loadAndSortAuthors() {
     $.getJSON('authors.php', function(data) {

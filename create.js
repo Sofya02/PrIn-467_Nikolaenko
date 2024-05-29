@@ -127,7 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.appendChild(textL);
 
 
-
     // Установка стилей для body
     document.body.style.font = '10pt arial';
     document.body.style.padding = '0';
@@ -137,29 +136,39 @@ document.addEventListener('DOMContentLoaded', function() {
     document.body.style.backgroundColor = 'rgb(247, 241, 227)';
 
     // Установка стилей для #author_network
-    // const authorNetwork = document.getElementById('author_network');
     authorNetwork.style.position = 'fixed';
-    authorNetwork.style.width = '900px';
+    authorNetwork.style.width = '800px';
     authorNetwork.style.height = '620px';
     authorNetwork.style.border = '1px solid rgb(0, 0, 0)';
-    authorNetwork.style.marginTop = '90px';
+    authorNetwork.style.marginTop = '100px';
     authorNetwork.style.marginLeft = '15px';
     authorNetwork.style.float = 'left';
     authorNetwork.style.backgroundColor = '#fff';
+    authorNetwork.style.borderRadius = '10px';
 
     // Установка стилей для #text-l
-    // const textL = document.getElementById('text-l');
     textL.style.paddingTop = '5px';
-    textL.style.paddingLeft = '950px';
+    textL.style.paddingLeft = '850px';
 
     // Установка стилей для #filter-menu
-    // const filterMenu = document.getElementById('filter-menu');
     filterMenu.style.position = 'fixed';
     filterMenu.style.border = '1px solid rgb(0, 0, 0)';
-    filterMenu.style.backgroundColor = '#FFF8E7';
+    filterMenu.style.backgroundColor = '#fff';
     filterMenu.style.marginLeft = '15px';
-    filterMenu.style.marginTop = '15px';
-    filterMenu.style.width = '900px';
+    filterMenu.style.marginTop = '10px';
+    filterMenu.style.width = '800px';
+    filterMenu.style.borderRadius = '10px';
+
+    // Установка стилей для кнопок
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.style.backgroundColor = 'blue';
+        button.style.color = 'white';
+        button.style.border = '1px solid grey';
+        button.style.marginBottom = '10px';
+        button.style.borderRadius = '5px';
+        button.style.marginLeft = '2px';
+    });
 
     // Установка стилей для #au внутри #filter-menu
     const auElements = filterMenu.querySelectorAll('#filter-menu #au');
@@ -167,4 +176,5 @@ document.addEventListener('DOMContentLoaded', function() {
         au.style.display = 'inline-block';
         au.style.marginRight = index < auElements.length - 1 ? '30px' : '0';
     });
+
 });
