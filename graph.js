@@ -63,6 +63,8 @@ initGraph();
 function setupAuthorSearchDropdown(network) {
     $('#author-search-dropdown').on('change', function() {
       resetSelectToInitialValue('#value-search-dropdown');
+      $('#showNoJointWorks').prop('checked', false);
+      $('#showJointWorks').prop('checked', false);
       const selectedAuthorId = $(this).val();
       updateGraphWithAuthorId(selectedAuthorId, network);
     });
@@ -186,6 +188,8 @@ function filterNodesByPublications(node, selectedValue) {
   function handleValueSearchDropdown(network, nodes, edges) {
     $('#value-search-dropdown').on('change', function() {
         resetSelectToInitialValue('#author-search-dropdown');
+        $('#showNoJointWorks').prop('checked', false);
+        $('#showJointWorks').prop('checked', false);
         const selectedValue = $(this).val();
         if (selectedValue) {
             let filteredNodes;
