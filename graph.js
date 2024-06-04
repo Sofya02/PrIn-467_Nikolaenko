@@ -72,9 +72,9 @@ function setupAuthorSearchDropdown(network) {
 
 function updateGraphWithAuthorId(authorId, network) {
     if (authorId) {
-      $.getJSON('/bd_graph.php?author_id=' + authorId, graphData => {
-        network.setData(graphData);
-      });
+        $.getJSON('/bd_graph.php?author_id=' + authorId + '&include_coauthors=true', graphData => {
+            network.setData(graphData);
+        });
     }
   }
 
@@ -185,32 +185,6 @@ function filterNodesByPublications(node, selectedValue) {
   }
 
 //   //Функция фильтрации графа по количеству публикаций автора
-//   function handleValueSearchDropdown(network, nodes, edges) {
-//     $('#value-search-dropdown').on('change', function() {
-//         resetSelectToInitialValue('#author-search-dropdown');
-//         $('#showNoJointWorks').prop('checked', false);
-//         $('#showJointWorks').prop('checked', false);
-//         const selectedValue = $(this).val();
-//         if (selectedValue) {
-//             let filteredNodes;
-//             // Фильтруем узлы по количеству публикаций ребер
-//             filteredNodes = nodes.get().filter(node => filterNodesByPublications(node, selectedValue));
-            
-//             // Создаем новый DataSet с отфильтрованными узлами
-//             const filteredNodesSet = new vis.DataSet(filteredNodes);
-
-//             // Обновляем данные графа
-//             const data = {
-//                 nodes: filteredNodesSet,
-//                 edges: edges,
-//             };
-
-//             // Очищаем текущий граф и устанавливаем новые данные
-//             network.setData(data);
-//         } 
-//     });
-// }
-
 function handleValueSearchDropdown(network, nodes, edges) {
     $('#value-search-dropdown').on('change', function() {
         resetSelectToInitialValue('#author-search-dropdown');
@@ -407,6 +381,7 @@ function handleNodeClick(network, nodes, edges) {
         }
     });
 }
+
 
 function extractYear(yearString) {
     const match = yearString.match(/\b\d{4}\b/);
