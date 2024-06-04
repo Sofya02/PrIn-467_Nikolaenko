@@ -3,6 +3,7 @@ include 'db.php';
 
 $authorId = isset($_GET['author_id']) ? intval($_GET['author_id']) : null;
 $typeId = isset($_GET['type_id']) ? intval($_GET['type_id']) : null;
+$filterType = isset($_GET['filter_type']) ? $_GET['filter_type'] : null;
 
 if ($authorId) {
     $authors = mysqli_query($connection, "SELECT authors.id, authors.name, COUNT(authorpublication.IdPublications) AS total_publications
@@ -14,7 +15,15 @@ if ($authorId) {
     $authors = mysqli_query($connection, "SELECT authors.id, authors.name, COUNT(authorpublication.IdPublications) AS total_publications
     FROM authors 
     LEFT JOIN authorpublication ON authors.id = authorpublication.IdAuthors
-    GROUP BY authors.id, authors.name");
+    GROUP BY authors.id, authors.name
+    HAVING 
+    CASE 
+        WHEN '$filterType' = 'меньше 10' THEN total_publications < 10
+        WHEN '$filterType' = '11-50' THEN total_publications BETWEEN 11 AND 50
+        WHEN '$filterType' = '51-100' THEN total_publications BETWEEN 51 AND 100
+        WHEN '$filterType' = 'больше 100' THEN total_publications > 100
+        ELSE TRUE
+    END");
 }
 
 $authorsData = [];
