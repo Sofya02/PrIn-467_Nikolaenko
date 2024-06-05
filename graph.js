@@ -58,9 +58,7 @@ function initGraph() {
             } catch (error) {
                 console.error("Failed to fetch graph data:", error.statusText, error.responseText);
             }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error("Failed to fetch graph data:", textStatus, errorThrown);
-    });
+        });
 }
 
 initGraph();
@@ -385,18 +383,24 @@ function createChart(data) {
         console.error("Error creating chart", error);
     }
 }
-//Функция для работы с инф при нажатии на узел графа
+// //Функция для работы с инф при нажатии на узел графа
 function handleNodeClick(network, nodes, edges) {
     network.on('click', function(event) {
         try {
             const nodeId = event.nodes[0];
             if (nodeId) {
                 fetch('/authors_publications.php?author_id=' + nodeId)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         const authorName = data.author.name;
                         const totalPublications = data.author.total_publications;
                         const authorInfoElement = document.getElementById('author-info');
+
                         authorInfoElement.innerHTML = `<h2>${authorName}, ${totalPublications} публ.</h2>`;
 
                         const publicationsByType = groupPublicationsByType(data);
@@ -408,11 +412,18 @@ function handleNodeClick(network, nodes, edges) {
                         removePreviousChart();
                         createChart(data);
                     })
-                    // .catch(error => {
-                    //     console.error('There was a problem with your fetch operation:', error);
-                    // });
                     .catch(error => {
-                        console.error("Failed to fetch author publications", error);
+                        // console.error("Failed to fetch author publications", error);
+                        $('#author-info').empty();
+                        $('#co-publications-list').empty();
+                        $('#publications-list').empty();
+                        const chartElement = document.getElementById('chart');
+                        if (chartElement) {
+                            chartElement.remove(); // Удаление элемента canvas
+                        }
+                        // Обработка ошибки, если не удалось получить данные
+                        const authorInfoElement = document.getElementById('author-info');
+                        authorInfoElement.innerHTML = `<h1 style="color: red;">Ошибка при загрузке информации об авторе!<p>Или у автора нет публикаций!</p></h1>`;
                     });
             }
         } catch (error) {
