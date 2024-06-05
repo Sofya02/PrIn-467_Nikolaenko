@@ -51,7 +51,7 @@ if ($includeCoauthors) {
             'id' => $row['id'],
             'label' => $row['name'] . ', ' . "\n" . $row['total_publications'] . ' публ.',
             'size' => max($row['total_publications'] * 0.75, 32),
-            'color' => '#E6E6FA',
+            'color' => '#6495ED',
             'publications' => $row['total_publications'],
         ];
     }

@@ -1,58 +1,65 @@
 function initGraph() {
     $.getJSON('/bd_graph.php', graphData => {
-    const nodes = new vis.DataSet(graphData.nodes);
-    const edges = new vis.DataSet(graphData.edges);
+        try {  
+                const nodes = new vis.DataSet(graphData.nodes);
+                const edges = new vis.DataSet(graphData.edges);
+                const dataSet = createDataSetFromServerData(graphData);
+                const container = document.getElementById('author_network');
+                if (!container) throw new Error("Container 'author_network' not found");
+                const data = {
+                    nodes: dataSet.nodes,
+                    edges: dataSet.edges,
+                };
 
-    const container = document.getElementById('author_network');
-    const data = {
-        nodes: nodes,
-        edges: edges,
-    };
+                const options = {
+                    nodes: {
+                        shape: "dot",
+                        font: {
+                            size: 24,
+                            color: "#000000",
+                            face: "bold"
+                        },
+                    },
+                    physics: {
+                        forceAtlas2Based: {
+                            gravitationalConstant: -26,
+                            centralGravity: 0.005,
+                            springLength: 230,
+                            springConstant: 0.18,
+                        },
+                        maxVelocity: 146,
+                        solver: "forceAtlas2Based",
+                        timestep: 0.35,
+                        stabilization: {
+                            iterations: 150,
+                        },
+                        barnesHut: {
+                            avoidOverlap: 0.5
+                        }
+                    },
+                        interaction: {
+                            dragNodes: true,
+                            zoomView: true,
+                        },
+                    };
 
-    const options = {
-        nodes: {
-            shape: "dot",
-            font: {
-                size: 24,
-                color: "#000000",
-                face: "bold"
-            },
-        },
-        physics: {
-            forceAtlas2Based: {
-                gravitationalConstant: -26,
-                centralGravity: 0.005,
-                springLength: 230,
-                springConstant: 0.18,
-            },
-            maxVelocity: 146,
-            solver: "forceAtlas2Based",
-            timestep: 0.35,
-            stabilization: {
-                iterations: 150,
-            },
-            barnesHut: {
-                avoidOverlap: 0.5
+                    const network = new vis.Network(container, data, options);
+
+
+                    handleJointWorksCheckbox('showJointWorks', nodes, edges, network);
+                    handleNoJointWorksCheckbox('showNoJointWorks', nodes, edges, network);
+                    handleValueSearchDropdown(network, nodes, edges);
+                    handleNodeClick(network, nodes, edges);
+                    setupAuthorSearchDropdown(network);
+                    clearAuthorSelection();
+                    clearAuthorSearch(network);
+                    clearValueSearch(network);
+
+            } catch (error) {
+                console.error("Failed to fetch graph data:", error.statusText, error.responseText);
             }
-        },
-            interaction: {
-                dragNodes: true,
-                zoomView: true,
-            },
-        };
-
-        const network = new vis.Network(container, data, options);
-
-
-        handleJointWorksCheckbox('showJointWorks', nodes, edges, network);
-        handleNoJointWorksCheckbox('showNoJointWorks', nodes, edges, network);
-        handleValueSearchDropdown(network, nodes, edges);
-        handleNodeClick(network, nodes, edges);
-        setupAuthorSearchDropdown(network);
-        clearAuthorSelection();
-        clearAuthorSearch(network);
-        clearValueSearch(network);
-
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("Failed to fetch graph data:", textStatus, errorThrown);
     });
 }
 
@@ -73,7 +80,11 @@ function setupAuthorSearchDropdown(network) {
 function updateGraphWithAuthorId(authorId, network) {
     if (authorId) {
         $.getJSON('/bd_graph.php?author_id=' + authorId + '&include_coauthors=true', graphData => {
-            network.setData(graphData);
+            try {
+                network.setData(graphData);
+            } catch (error) {
+                console.error("Failed to update graph with author ID", error);
+            }
         });
     }
   }
@@ -187,25 +198,29 @@ function filterNodesByPublications(node, selectedValue) {
 //   //Функция фильтрации графа по количеству публикаций автора
 function handleValueSearchDropdown(network, nodes, edges) {
     $('#value-search-dropdown').on('change', function() {
-        resetSelectToInitialValue('#author-search-dropdown');
-        $('#showNoJointWorks').prop('checked', false);
-        $('#showJointWorks').prop('checked', false);
-        const selectedValue = $(this).val();
-        if (selectedValue) {
-            $.getJSON('/bd_graph.php?filter_type=' + selectedValue, function(response) {
-                const data = response;
-                const nodes = new vis.DataSet(data.nodes);
-                const edges = new vis.DataSet(data.edges);
+        try {
+            resetSelectToInitialValue('#author-search-dropdown');
+            $('#showNoJointWorks').prop('checked', false);
+            $('#showJointWorks').prop('checked', false);
+            const selectedValue = $(this).val();
+            if (selectedValue) {
+                $.getJSON('/bd_graph.php?filter_type=' + selectedValue, function(response) {
+                    const data = response;
+                    const nodes = new vis.DataSet(data.nodes);
+                    const edges = new vis.DataSet(data.edges);
 
-                const container = document.getElementById('author_network');
-                const graphData = {
-                    nodes: nodes,
-                    edges: edges,
-                };
+                    const container = document.getElementById('author_network');
+                    const graphData = {
+                        nodes: nodes,
+                        edges: edges,
+                    };
 
-                network.setData(graphData);
-            });
-        } 
+                    network.setData(graphData);
+                });
+            } 
+        } catch (error) {
+            console.error("Failed to handle value search dropdown", error);
+        }
     });
 }
 
@@ -227,6 +242,10 @@ function groupPublicationsByType(data) {
 
 function displayPublicationsByType(publicationsByType) {
     const publicationsList = document.getElementById('publications-list');
+    if (!publicationsList) {
+        console.error("Element 'publications-list' not found");
+        return;
+    }
     publicationsList.innerHTML = '';
     for (const typeName in publicationsByType) {
         const listItem = document.createElement('li');
@@ -264,6 +283,10 @@ function collectCoPublications(data, nodeId, nodes, edges) {
 
 function displayCoPublications(coPublications, nodes) {
     const coPublicationsList = document.getElementById('co-publications-list');
+    if (!coPublicationsList) {
+        console.error("Element 'co-publications-list' not found");
+        return;
+    }
     coPublicationsList.innerHTML = '';
     for (const authorId in coPublications) {
         const listItem = document.createElement('li');
@@ -303,81 +326,97 @@ function removePreviousChart() {
 }
 
 function createChart(data) {
-    // Предполагаем, что publicationsByYear - это объект вида { год: количество_публикаций }
-    const years = Object.keys(data.publicationsByYear).map(year => parseInt(year, 10));
-    const counts = years.map(year => data.publicationsByYear[year.toString()]);
 
-    // Фильтруем NaN из данных
-    const validCounts = counts.filter(count => !isNaN(count));
+    try {
+        // Предполагаем, что publicationsByYear - это объект вида { год: количество_публикаций }
+        const years = Object.keys(data.publicationsByYear).map(year => parseInt(year, 10));
+        const counts = years.map(year => data.publicationsByYear[year.toString()]);
 
-    // Сортировка лет в порядке возрастания
-    years.sort((a, b) => a - b);
+        if (!data.publicationsByYear || typeof data.publicationsByYear !== 'object') {
+            throw new Error("Invalid data format for chart creation");
+        }
 
-    // Определяем последний год
-    const lastYear = years[years.length - 1];
+        // Фильтруем NaN из данных
+        const validCounts = counts.filter(count => !isNaN(count));
 
-    // Удаляем годы, для которых нет данных (если такие есть)
-    const yearsWithData = years.filter((year, index) => !isNaN(validCounts[index]));/**/ 
+        // Сортировка лет в порядке возрастания
+        years.sort((a, b) => a - b);
 
-    removePreviousChart();
+        // Определяем последний год
+        const lastYear = years[years.length - 1];
 
-    const newChartElement = document.createElement('canvas');
-    newChartElement.id = 'chart';
-    document.querySelector('.chart-container').appendChild(newChartElement);
-    window.myChart = new Chart(newChartElement, {
-        type: 'bar',
-        data: {
-            labels: yearsWithData.map(year => year.toString()),
-            datasets: [{
-                label: 'Количество публикаций',
-                data: validCounts.filter((count, index) => !isNaN(count) && !isNaN(years[index])),
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-                x: {
-                    // Указываем, что метки должны быть только из данных
-                    ticks: {
-                        source: 'data'
+        // Удаляем годы, для которых нет данных (если такие есть)
+        const yearsWithData = years.filter((year, index) => !isNaN(validCounts[index]));/**/ 
+
+        removePreviousChart();
+
+        const newChartElement = document.createElement('canvas');
+        newChartElement.id = 'chart';
+        document.querySelector('.chart-container').appendChild(newChartElement);
+        window.myChart = new Chart(newChartElement, {
+            type: 'bar',
+            data: {
+                labels: yearsWithData.map(year => year.toString()),
+                datasets: [{
+                    label: 'Количество публикаций',
+                    data: validCounts.filter((count, index) => !isNaN(count) && !isNaN(years[index])),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
                     },
-                    // Ограничиваем ширину графика последним годом
-                    max: lastYear
+                    x: {
+                        // Указываем, что метки должны быть только из данных
+                        ticks: {
+                            source: 'data'
+                        },
+                        // Ограничиваем ширину графика последним годом
+                        max: lastYear
+                    }
                 }
             }
-        }
-    });
+        });
+    } catch (error) {
+        console.error("Error creating chart", error);
+    }
 }
 //Функция для работы с инф при нажатии на узел графа
 function handleNodeClick(network, nodes, edges) {
     network.on('click', function(event) {
-        const nodeId = event.nodes[0];
-        if (nodeId) {
-            fetch('/authors_publications.php?author_id=' + nodeId)
-                .then(response => response.json())
-                .then(data => {
-                    const authorName = data.author.name;
-                    const totalPublications = data.author.total_publications;
-                    const authorInfoElement = document.getElementById('author-info');
-                    authorInfoElement.innerHTML = `<h2>${authorName}, ${totalPublications} публ.</h2>`;
+        try {
+            const nodeId = event.nodes[0];
+            if (nodeId) {
+                fetch('/authors_publications.php?author_id=' + nodeId)
+                    .then(response => response.json())
+                    .then(data => {
+                        const authorName = data.author.name;
+                        const totalPublications = data.author.total_publications;
+                        const authorInfoElement = document.getElementById('author-info');
+                        authorInfoElement.innerHTML = `<h2>${authorName}, ${totalPublications} публ.</h2>`;
 
-                    const publicationsByType = groupPublicationsByType(data);
-                    displayPublicationsByType(publicationsByType);
+                        const publicationsByType = groupPublicationsByType(data);
+                        displayPublicationsByType(publicationsByType);
 
-                    const coPublications = collectCoPublications(data, nodeId, nodes, edges);
-                    displayCoPublications(coPublications, nodes);
+                        const coPublications = collectCoPublications(data, nodeId, nodes, edges);
+                        displayCoPublications(coPublications, nodes);
 
-                    removePreviousChart();
-                    createChart(data);
-                })
-                .catch(error => {
-                    console.error('There was a problem with your fetch operation:', error);
-                });
+                        removePreviousChart();
+                        createChart(data);
+                    })
+                    // .catch(error => {
+                    //     console.error('There was a problem with your fetch operation:', error);
+                    // });
+                    .catch(error => {
+                        console.error("Failed to fetch author publications", error);
+                    });
+            }
+        } catch (error) {
+            console.error("Error handling node click", error);
         }
     });
 }
@@ -391,21 +430,29 @@ function extractYear(yearString) {
 //Функция для кнопки очистки списка публикаций автора
 function clearAuthorSelection() {
     $('#clear-author-selection').on('click', function() {
-      $('#author-info').empty();
-      $('#co-publications-list').empty();
-      $('#publications-list').empty();
-      const chartElement = document.getElementById('chart');
-      if (chartElement) {
-          chartElement.remove(); // Удаление элемента canvas
-      }
+        try {
+            $('#author-info').empty();
+            $('#co-publications-list').empty();
+            $('#publications-list').empty();
+            const chartElement = document.getElementById('chart');
+            if (chartElement) {
+                chartElement.remove(); // Удаление элемента canvas
+            }
+        } catch (error) {
+            console.error("Failed to clear author selection", error);
+        }
     });
   }
 
 //Функция для кнопки очистки графа после выбора автора
 function clearAuthorSearch(network) {
     $('#clear-author-search').on('click', function() {
-      resetSelectToInitialValue('#author-search-dropdown');
-      getJSONData(url,network);
+        try {
+            resetSelectToInitialValue('#author-search-dropdown');
+            getJSONData(url,network);
+        } catch (error) {
+            console.error("Failed to clear graph after author selection", error);
+        }
     });
   }
 
@@ -420,8 +467,12 @@ function resetSelectToInitialValue(selectId) {
 // Обработчик для кнопки очистки графа после выбора кол-ва публикаций автора
 function clearValueSearch(network) {
     $('#clear-value-search').on('click', function() {
-        resetSelectToInitialValue('#value-search-dropdown');
-        getJSONData(url,network);
+        try {
+            resetSelectToInitialValue('#value-search-dropdown');
+            getJSONData(url,network);
+        } catch (error) {
+            console.error("Failed to clear graph after value selection", error);
+        }
     });
 }
 
@@ -450,3 +501,14 @@ function loadAndSortAuthors() {
  
   loadAndSortAuthors();
 
+
+  function createDataSetFromServerData(serverData) {
+    try {
+        const nodes = new vis.DataSet(serverData.nodes);
+        const edges = new vis.DataSet(serverData.edges);
+        return { nodes, edges };
+    } catch (error) {
+        console.error("Error creating DataSet from server data", error);
+        return { nodes: new vis.DataSet(), edges: new vis.DataSet() };
+    }
+}
