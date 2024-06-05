@@ -1,4 +1,5 @@
 function initGraph() {
+
     $.getJSON('/bd_graph.php', graphData => {
         try {  
                 const nodes = new vis.DataSet(graphData.nodes);
