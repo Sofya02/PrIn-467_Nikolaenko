@@ -229,12 +229,15 @@ function groupPublicationsByType(data) {
         if (!publicationsByType[publication.type_name]) {
             publicationsByType[publication.type_name] = [];
         }
-        publicationsByType[publication.type_name].push({
-            title: publication.title,
-            city: publication.city,
-            university: publication.university,
-            year: extractYear(publication.year),
-        });
+        const year = extractYear(publication.year);
+        if (year !== null) {
+            publicationsByType[publication.type_name].push({
+                title: publication.title,
+                city: publication.city,
+                university: publication.university,
+                year: year,
+            });
+        }
     });
     return publicationsByType;
 }
@@ -433,10 +436,14 @@ function handleNodeClick(network, nodes, edges) {
     });
 }
 
-
 function extractYear(yearString) {
+    
+    if (yearString === null || yearString === '') {
+        return null;
+    }
     const match = yearString.match(/\b\d{4}\b/);
     return match ? parseInt(match[0], 10) : null;
+    
 }
 
 //Функция для кнопки очистки списка публикаций автора
